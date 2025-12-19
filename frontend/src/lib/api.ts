@@ -78,3 +78,42 @@ export const api = {
 
   delete: <T>(endpoint: string) => apiRequest<T>(endpoint, { method: 'DELETE' }),
 };
+
+// Phase III: Chat API functions
+import type {
+  ChatResponse,
+  ConversationListResponse,
+  MessageListResponse,
+} from './types';
+
+export async function sendChatMessage(
+  userId: string,
+  message: string,
+  conversationId?: string | null
+): Promise<ChatResponse> {
+  return api.post<ChatResponse>(`/api/${userId}/chat`, {
+    message,
+    conversation_id: conversationId,
+  });
+}
+
+export async function getConversations(
+  userId: string,
+  limit = 10,
+  offset = 0
+): Promise<ConversationListResponse> {
+  return api.get<ConversationListResponse>(
+    `/api/${userId}/conversations?limit=${limit}&offset=${offset}`
+  );
+}
+
+export async function getConversationMessages(
+  userId: string,
+  conversationId: string,
+  limit = 50,
+  offset = 0
+): Promise<MessageListResponse> {
+  return api.get<MessageListResponse>(
+    `/api/${userId}/conversations/${conversationId}/messages?limit=${limit}&offset=${offset}`
+  );
+}

@@ -39,3 +39,24 @@ export function isAuthenticated(): boolean {
 
   return true;
 }
+
+/**
+ * Get the user ID from the JWT token.
+ * Returns null if no token or unable to decode.
+ */
+export function getUserIdFromToken(): string | null {
+  const token = getToken();
+  if (!token) return null;
+
+  try {
+    // JWT is base64 encoded: header.payload.signature
+    const parts = token.split('.');
+    if (parts.length !== 3) return null;
+
+    // Decode the payload (second part)
+    const payload = JSON.parse(atob(parts[1]));
+    return payload.sub || null;
+  } catch {
+    return null;
+  }
+}

@@ -1,33 +1,33 @@
 <!--
   Sync Impact Report
   ==================
-  Version change: 1.0.0 → 1.1.0
-  Bump rationale: MINOR - Reorganized from 12 sections to 10 principles; elevated "No External Dependencies" to standalone principle
+  Version change: 1.1.0 → 1.2.0
+  Bump rationale: MINOR - Added Phase III scope definition and technology stack (new phase gate extension)
 
   Modified principles:
-  - "Authority and Precedence" → removed (implicit in document status)
-  - "AI Obligations" → split into "AI Obligations" (III) + "No External Dependencies" (IV)
-  - "Audit and Evaluation Readiness" → merged into "Phase Gate" (X)
+  - None - all existing Phase I principles preserved
 
   Added sections:
-  - IV. No External Dependencies (elevated from AI Obligations)
+  - "Included Scope (Phase III)" under Scope Definition
+  - Phase III technology stack table
+  - Phase III MCP tools specification
+  - Phase III transition gate in Phase Gate section
 
   Removed sections:
-  - I. Authority and Precedence (implicit in document governance)
-  - XI. Audit and Evaluation Readiness (merged into Phase Gate)
+  - None
 
   Templates requiring updates:
-  - .specify/templates/plan-template.md ✅ (Constitution Check section compatible)
+  - .specify/templates/plan-template.md ✅ (no conflicts; Phase III uses same structure)
   - .specify/templates/spec-template.md ✅ (no conflicts)
-  - .specify/templates/tasks-template.md ✅ (structure compatible with single project)
+  - .specify/templates/tasks-template.md ✅ (structure compatible)
 
   Follow-up TODOs: None
 -->
 
-# Todo Console Application Constitution
+# Todo Application Constitution
 
 **Document Status**: Authoritative / Binding
-**Applies To**: Phase I only
+**Applies To**: Phase I (core), Phase II and Phase III (extended scope)
 **Execution Agent**: Claude Code (AI Engineer)
 **Authoring Authority**: Human Architect (Specs Only)
 **Project Category**: Hobby
@@ -50,7 +50,7 @@ All development MUST follow Spec-Driven Development (SDD) methodology.
 ### II. Human Constraints
 
 Humans MUST NOT:
-- Write or modify `.py` source code files
+- Write or modify `.py`, `.ts`, `.tsx` source code files
 - Insert logic directly into source code
 - Perform manual bug fixes
 - Bypass or contradict written specifications
@@ -61,7 +61,7 @@ Humans MAY ONLY:
 - Review generated output
 - Re-run Claude Code with revised specs
 
-**Violation Consequence:** Any violation invalidates the entire Phase I.
+**Violation Consequence:** Any violation invalidates the affected Phase.
 
 ### III. AI Obligations
 
@@ -69,35 +69,42 @@ Claude Code MUST:
 - Read all spec files before any implementation
 - Implement only explicitly defined behavior
 - Respect all scope limitations
-- Produce clean, readable, Pythonic code
+- Produce clean, readable code following language idioms
 - Avoid unnecessary complexity
 
 Claude Code MUST NOT:
 - Add features outside defined specs
-- Persist data in any form
-- Introduce web, GUI, or async functionality
+- Introduce functionality not permitted by the current Phase
 
-### IV. No External Dependencies
+### IV. No External Dependencies (Phase I Only)
 
-**Mandatory Rules:**
+**Mandatory Rules (Phase I):**
 - No third-party libraries are allowed
 - Only Python standard library is permitted
 - No network operations
 - No file I/O (except specification reads during development)
 - No asynchronous programming
 
+**Phase II and Phase III**: External dependencies are permitted as defined in Phase-specific scope.
+
 ### V. Data Lifetime
 
+**Phase I:**
 - All application data SHALL exist only in memory during runtime
 - All data SHALL be destroyed upon program termination
 - Persistence of any form is strictly forbidden
+
+**Phase II and Phase III:**
+- Database persistence is REQUIRED via Neon Serverless PostgreSQL
+- All data operations MUST go through the defined ORM (SQLModel)
 
 ## Technical Standards
 
 ### VI. Code Quality
 
 Generated code MUST:
-- Target Python 3.13 or later
+- Target Python 3.13 or later (backend)
+- Target TypeScript 5.x or later (frontend)
 - Use clear functional decomposition
 - Follow consistent naming conventions
 - Avoid global mutable state where reasonably possible
@@ -105,15 +112,25 @@ Generated code MUST:
 
 Premature optimization is not permitted.
 
-### VII. Command-Line Interface Standards
+### VII. Interface Standards
 
-The CLI MUST:
+**Phase I (CLI):**
 - Present a clear, numbered menu interface
 - Use human-readable prompts
 - Display tasks in a clean, structured format
 - Handle invalid input gracefully
 
-The CLI MUST NOT:
+**Phase II (Web):**
+- REST API endpoints per OpenAPI specification
+- Next.js App Router for frontend
+- Responsive design (320px to 1920px)
+
+**Phase III (Chat):**
+- Natural language conversational interface
+- AI agent processes user messages via MCP tools
+- Friendly confirmations and error handling
+
+All interfaces MUST NOT:
 - Crash due to user input
 - Expose stack traces or internal errors to users
 
@@ -122,6 +139,7 @@ The CLI MUST NOT:
 - All user-facing errors SHALL be handled gracefully
 - Invalid task identifiers SHALL result in clear messages
 - Internal exceptions SHALL NOT be exposed to users
+- HTTP 401 for authentication failures; HTTP 404 for not found (without leaking existence)
 
 ## Process Standards
 
@@ -136,7 +154,7 @@ Direct code modification is strictly forbidden.
 
 ### X. Phase Gate
 
-Phase I is considered complete only when:
+**Phase I Completion:**
 - All specified features are implemented
 - No excluded functionality exists
 - All rules in this Constitution are satisfied
@@ -147,6 +165,11 @@ Phase I is considered complete only when:
 - Stable under normal usage
 - Fully compliant with this Constitution
 
+**Transition to Phase III** is permitted only after Phase II is:
+- Functionally complete (all user stories implemented)
+- Authentication and task CRUD operational
+- Database persistence verified
+
 ## Scope Definition
 
 ### Included Scope (Phase I)
@@ -156,17 +179,78 @@ Phase I is considered complete only when:
 - In-memory task storage
 - Full CRUD operations on Todo tasks
 
-### Explicitly Excluded Scope
+### Included Scope (Phase II)
 
-- Databases of any kind
-- File-based persistence (JSON, TXT, Pickle, etc.)
-- Authentication or authorization
-- Web frameworks or APIs
-- Docker, Kubernetes, or cloud services
+- Full-stack web application (frontend + backend)
+- Multi-user operation with authentication
+- Persistent storage via Neon PostgreSQL
+- REST API with JWT authentication
+
+**Phase II Technology Stack:**
+
+| Layer | Technology | Notes |
+|-------|------------|-------|
+| Frontend | Next.js 14+ (App Router) | TypeScript, React |
+| Backend | Python FastAPI | REST API |
+| ORM | SQLModel | Task, User models |
+| Database | Neon Serverless PostgreSQL | Persistent storage |
+| Authentication | Better Auth + JWT | User identity |
+
+### Included Scope (Phase III)
+
+- AI-powered chatbot for task management
+- Conversational interface for all CRUD operations
+- MCP server architecture exposing task operations as tools
+- Stateless chat endpoint with database persistence for conversations
+
+**Phase III Technology Stack:**
+
+| Layer | Technology | Notes |
+|-------|------------|-------|
+| Frontend | OpenAI ChatKit | Chat UI for task management |
+| Backend | Python FastAPI | Chat endpoint, MCP server integration |
+| AI Framework | OpenAI Agents SDK | NLP reasoning, tool execution |
+| MCP Server | Official MCP SDK | Exposes task operations as tools |
+| ORM | SQLModel | Task, Conversation, Message models |
+| Database | Neon Serverless PostgreSQL | Conversation and task storage |
+| Authentication | Better Auth + JWT | User context for API calls |
+| Spec-Driven Dev | Claude Code + Spec-Kit Plus | Follow specs, no manual coding |
+
+**Phase III MCP Tools:**
+
+| Tool | Purpose | Input Parameters | Returns |
+|------|---------|------------------|---------|
+| add_task | Create a new task | user_id (str), title (str), description (opt) | task_id, status, title |
+| list_tasks | Retrieve tasks | user_id (str), status (opt: all/pending/completed) | Array of task objects |
+| complete_task | Mark task complete | user_id (str), task_id (int) | task_id, status, title |
+| delete_task | Delete a task | user_id (str), task_id (int) | task_id, status, title |
+| update_task | Modify task | user_id (str), task_id (int), title (opt), description (opt) | task_id, status, title |
+
+**Phase III Conversation Flow (Stateless):**
+
+1. Receive user message
+2. Fetch conversation history from database
+3. Store user message
+4. Run AI agent with MCP tools
+5. Store assistant response
+6. Return response to frontend
+
+**Phase III Endpoints:**
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | /api/{user_id}/chat | Send message, get AI response, execute MCP tools |
+
+### Explicitly Excluded Scope (All Phases)
+
+- Docker, Kubernetes, or cloud orchestration
+- Background job queues (Phase I, II)
+- Real-time websockets (Phase I, II)
+- Multi-tenant enterprise features
 
 ## Governance
 
-This Constitution supersedes all other practices for Phase I development.
+This Constitution supersedes all other practices for all Phase development.
 
 **Amendment Procedure:**
 1. Proposed changes MUST be documented in Markdown
@@ -184,4 +268,4 @@ This Constitution supersedes all other practices for Phase I development.
 - Complexity must be justified against the simplicity principle
 - Constitution checks are mandatory gates in the planning phase
 
-**Version**: 1.1.0 | **Ratified**: 2025-12-18 | **Last Amended**: 2025-12-18
+**Version**: 1.2.0 | **Ratified**: 2025-12-18 | **Last Amended**: 2025-12-19

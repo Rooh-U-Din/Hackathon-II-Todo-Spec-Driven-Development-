@@ -54,3 +54,37 @@ export interface UserLogin {
 export interface ErrorResponse {
   detail: string;
 }
+
+// Phase III: Chat Types
+export interface ChatMessage {
+  id?: string;
+  role: 'user' | 'assistant';
+  content: string;
+  created_at?: string;
+}
+
+export interface ChatRequest {
+  message: string;
+  conversation_id?: string;
+}
+
+export interface ChatResponse {
+  message: string;
+  conversation_id: string;
+}
+
+export interface Conversation {
+  id: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ConversationListResponse {
+  conversations: Conversation[];
+  total: number;
+}
+
+export interface MessageListResponse {
+  messages: ChatMessage[];
+  total: number;
+}

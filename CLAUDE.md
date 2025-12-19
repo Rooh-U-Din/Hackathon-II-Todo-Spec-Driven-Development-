@@ -1,4 +1,4 @@
-# Claude Code Rules
+﻿# Claude Code Rules
 
 This file is generated during init for the selected agent.
 
@@ -198,6 +198,10 @@ Wait for consent; never auto-create ADRs. Group related decisions (stacks, authe
 
 ## Active Technologies
 
+- Python 3.13 + FastAPI, Google Gemini API (003-todo-ai-chatbot)
+- TypeScript + Next.js 14+ App Router (003-todo-ai-chatbot)
+- Neon Serverless PostgreSQL (003-todo-ai-chatbot)
+
 - Python 3.13 + FastAPI, SQLModel (002-fullstack-todo-web)
 - TypeScript + Next.js 14+ App Router (002-fullstack-todo-web)
 - Neon Serverless PostgreSQL (002-fullstack-todo-web)
@@ -245,9 +249,10 @@ frontend/
 
 ## Recent Changes
 
+- 003-todo-ai-chatbot: Switched from OpenAI to Google Gemini API for AI chatbot with function calling
 - 002-fullstack-todo-web: Added Python 3.13 + FastAPI, SQLModel, Next.js, Neon PostgreSQL
 
 ## Code Standards
 See `.specify/memory/constitution.md` for code quality, testing, performance, security, and architecture principles.
 
-**Last updated**: 2025-12-18
+**Last updated**: 2025-12-19
