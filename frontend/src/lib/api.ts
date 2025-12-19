@@ -4,7 +4,9 @@
 
 import type { ErrorResponse } from './types';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://todo-backend-production-bbb3.up.railway.app';
+// Remove trailing slash to prevent double slashes in URLs
+const rawApiUrl = process.env.NEXT_PUBLIC_API_URL || 'https://todo-backend-production-bbb3.up.railway.app';
+const API_BASE_URL = rawApiUrl.replace(/\/+$/, '');
 
 export class ApiError extends Error {
   constructor(
