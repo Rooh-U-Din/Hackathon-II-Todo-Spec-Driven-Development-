@@ -196,6 +196,13 @@ If ALL true, suggest:
 
 Wait for consent; never auto-create ADRs. Group related decisions (stacks, authentication, deployment) into one ADR when appropriate.
 
+## Active Technologies
+
+- Python 3.13 + FastAPI, SQLModel (002-fullstack-todo-web)
+- TypeScript + Next.js 14+ App Router (002-fullstack-todo-web)
+- Neon Serverless PostgreSQL (002-fullstack-todo-web)
+- Better Auth + JWT (002-fullstack-todo-web)
+
 ## Basic Project Structure
 
 - `.specify/memory/constitution.md` — Project principles
@@ -206,5 +213,41 @@ Wait for consent; never auto-create ADRs. Group related decisions (stacks, authe
 - `history/adr/` — Architecture Decision Records
 - `.specify/` — SpecKit Plus templates and scripts
 
+### Phase II Project Structure
+
+```text
+# Phase I (PRESERVED - DO NOT MODIFY)
+src/
+├── models/
+├── services/
+├── cli/
+└── lib/
+
+# Phase II (NEW)
+backend/
+├── app/
+│   ├── main.py              # FastAPI entry
+│   ├── config.py            # Environment config
+│   ├── models/              # SQLModel entities
+│   ├── api/                 # Route handlers
+│   ├── services/            # Business logic
+│   └── db/                  # Database session
+└── tests/
+
+frontend/
+├── src/
+│   ├── app/                 # Next.js App Router pages
+│   ├── components/          # React components
+│   ├── lib/                 # API client, types
+│   └── hooks/               # Custom React hooks
+└── tests/
+```
+
+## Recent Changes
+
+- 002-fullstack-todo-web: Added Python 3.13 + FastAPI, SQLModel, Next.js, Neon PostgreSQL
+
 ## Code Standards
 See `.specify/memory/constitution.md` for code quality, testing, performance, security, and architecture principles.
+
+**Last updated**: 2025-12-18
