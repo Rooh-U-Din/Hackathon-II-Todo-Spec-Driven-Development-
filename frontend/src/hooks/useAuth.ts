@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { isAuthenticated, clearToken, getToken } from '../../lib/auth';
-import { api } from '../../lib/api';
+import { isAuthenticated, clearToken, getToken } from '../lib/auth';
+import { api } from '../lib/api';
 
 interface UseAuthReturn {
   isLoggedIn: boolean;

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useTasks } from '@/hooks/useTasks';
 import TaskList from '@/components/TaskList';
 import TaskForm from '@/components/TaskForm';
-import type { TaskCreate } from '../../../../lib/types';
+import type { TaskCreate } from '../../../lib/types';
 
 export default function TasksPage() {
   const { tasks, isLoading, error, fetchTasks, createTask, toggleTask, deleteTask, clearError } =
