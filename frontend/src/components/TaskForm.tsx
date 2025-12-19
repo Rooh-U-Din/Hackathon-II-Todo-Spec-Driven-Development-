@@ -1,11 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import type { Task, TaskCreate, TaskUpdate } from '@/lib/types';
+import type { Task, TaskCreate } from '@/lib/types';
 
 interface TaskFormProps {
   initialData?: Task | null;
-  onSubmit: (data: TaskCreate | TaskUpdate) => Promise<void>;
+  onSubmit: (data: TaskCreate) => Promise<void>;
   onCancel?: () => void;
   isLoading?: boolean;
 }
@@ -36,7 +36,7 @@ export default function TaskForm({ initialData, onSubmit, onCancel, isLoading }:
       return;
     }
 
-    const data: TaskCreate | TaskUpdate = {
+    const data: TaskCreate = {
       title: title.trim(),
       description: description.trim() || null,
     };
