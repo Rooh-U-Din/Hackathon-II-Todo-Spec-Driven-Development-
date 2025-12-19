@@ -63,8 +63,8 @@ export function useChat({ userId }: UseChatOptions): UseChatReturn {
           `/api/${userId}/conversations?limit=1`
         );
 
-        if (conversationsResponse.conversations.length > 0) {
-          const recentConversation = conversationsResponse.conversations[0];
+        const recentConversation = conversationsResponse.conversations[0];
+        if (recentConversation) {
           setConversationId(recentConversation.id);
 
           // Load messages for this conversation
