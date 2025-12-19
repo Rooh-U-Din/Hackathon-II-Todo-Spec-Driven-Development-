@@ -4,9 +4,9 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import AuthForm from '@/components/AuthForm';
-import { api, ApiError } from '@/lib/api';
-import { setToken } from '@/lib/auth';
-import type { AuthResponse, UserLogin } from '@/lib/types';
+import { api, ApiError } from '../../../../lib/api';
+import { setToken } from '../../../../lib/auth';
+import type { AuthResponse, UserLogin } from '../../../../lib/types';
 
 export default function LoginPage() {
   const router = useRouter();

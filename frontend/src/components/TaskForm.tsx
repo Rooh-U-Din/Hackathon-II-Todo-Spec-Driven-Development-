@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import type { Task, TaskCreate } from '@/lib/types';
+import type { Task, TaskCreate } from '../../lib/types';
 
 interface TaskFormProps {
   initialData?: Task | null;

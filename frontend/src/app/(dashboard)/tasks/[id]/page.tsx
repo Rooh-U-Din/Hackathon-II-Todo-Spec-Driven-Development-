@@ -5,7 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useTasks } from '@/hooks/useTasks';
 import TaskForm from '@/components/TaskForm';
-import type { Task, TaskUpdate } from '@/lib/types';
+import type { Task, TaskUpdate } from '../../../../../lib/types';
 
 export default function TaskDetailPage() {
   const router = useRouter();

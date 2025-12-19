@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { api, ApiError } from '@/lib/api';
-import type { Task, TaskCreate, TaskUpdate, TaskListResponse, TaskResponse } from '@/lib/types';
+import { api, ApiError } from '../../lib/api';
+import type { Task, TaskCreate, TaskUpdate, TaskListResponse, TaskResponse } from '../../lib/types';
 
 interface UseTasksReturn {
   tasks: Task[];
