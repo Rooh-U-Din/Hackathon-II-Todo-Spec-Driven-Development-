@@ -51,10 +51,11 @@ export function getUserIdFromToken(): string | null {
   try {
     // JWT is base64 encoded: header.payload.signature
     const parts = token.split('.');
-    if (parts.length !== 3) return null;
+    const payloadPart = parts[1];
+    if (parts.length !== 3 || !payloadPart) return null;
 
     // Decode the payload (second part)
-    const payload = JSON.parse(atob(parts[1]));
+    const payload = JSON.parse(atob(payloadPart));
     return payload.sub || null;
   } catch {
     return null;
