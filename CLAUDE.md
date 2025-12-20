@@ -197,6 +197,8 @@ If ALL true, suggest:
 Wait for consent; never auto-create ADRs. Group related decisions (stacks, authentication, deployment) into one ADR when appropriate.
 
 ## Active Technologies
+- Python 3.13 (backend), Node.js 20 (frontend) + Docker, Minikube, Helm 3.x, kubectl (004-k8s-deployment)
+- External Neon PostgreSQL (unchanged from Phase III) (004-k8s-deployment)
 
 - Python 3.13 + FastAPI, Google Gemini API (003-todo-ai-chatbot)
 - TypeScript + Next.js 14+ App Router (003-todo-ai-chatbot)
@@ -248,11 +250,12 @@ frontend/
 ```
 
 ## Recent Changes
+- 004-k8s-deployment: Added Python 3.13 (backend), Node.js 20 (frontend) + Docker, Minikube, Helm 3.x, kubectl
+- 004-k8s-deployment: Added Python 3.13 (backend), Node.js 20 (frontend) + Docker, Minikube, Helm 3.x, kubectl
 
 - 003-todo-ai-chatbot: Switched from OpenAI to Google Gemini API for AI chatbot with function calling
-- 002-fullstack-todo-web: Added Python 3.13 + FastAPI, SQLModel, Next.js, Neon PostgreSQL
 
 ## Code Standards
 See `.specify/memory/constitution.md` for code quality, testing, performance, security, and architecture principles.
 
-**Last updated**: 2025-12-19
+**Last updated**: 2025-12-20

@@ -1,0 +1,68 @@
+# Local Development Values Override
+# Use with: helm install todo ./helm/todo-app -f values-local.yaml -f values-secrets.yaml
+
+# Global settings for local development
+global:
+  imagePullPolicy: Never  # Use local images in Minikube
+  nodeEnv: development
+
+# Frontend - local development settings
+frontend:
+  enabled: true
+  replicaCount: 1
+
+  image:
+    repository: todo-frontend
+    tag: local
+    pullPolicy: Never
+
+  # Lower resource requirements for local development
+  resources:
+    requests:
+      cpu: "50m"
+      memory: "64Mi"
+    limits:
+      cpu: "250m"
+      memory: "256Mi"
+
+  # Faster probes for local development
+  livenessProbe:
+    initialDelaySeconds: 5
+    periodSeconds: 5
+
+  readinessProbe:
+    initialDelaySeconds: 3
+    periodSeconds: 3
+
+# Backend - local development settings
+backend:
+  enabled: true
+  replicaCount: 1
+
+  image:
+    repository: todo-backend
+    tag: local
+    pullPolicy: Never
+
+  # Lower resource requirements for local development
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+
+  # Faster probes for local development
+  livenessProbe:
+    initialDelaySeconds: 10
+    periodSeconds: 5
+
+  readinessProbe:
+    initialDelaySeconds: 5
+    periodSeconds: 3
+
+  # Local development config
+  config:
+    PYTHONUNBUFFERED: "1"
+    LOG_LEVEL: "DEBUG"  # More verbose logging for development

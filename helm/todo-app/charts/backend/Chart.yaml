@@ -1,0 +1,14 @@
+apiVersion: v2
+name: backend
+description: Todo AI Chatbot Backend - FastAPI Application with MCP Tools
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+
+keywords:
+  - fastapi
+  - python
+  - backend
+  - api
+  - todo
+  - ai

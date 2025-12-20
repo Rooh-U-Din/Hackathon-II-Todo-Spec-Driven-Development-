@@ -1,0 +1,60 @@
+# Backend subchart default values
+
+replicaCount: 1
+
+image:
+  repository: todo-backend
+  tag: local
+  pullPolicy: Never
+
+nameOverride: ""
+fullnameOverride: ""
+
+service:
+  type: NodePort
+  port: 80
+  targetPort: 8000
+  nodePort: 30081
+
+resources:
+  requests:
+    cpu: "200m"
+    memory: "256Mi"
+  limits:
+    cpu: "1000m"
+    memory: "1Gi"
+
+livenessProbe:
+  httpGet:
+    path: /health
+    port: 8000
+  initialDelaySeconds: 15
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: /health
+    port: 8000
+  initialDelaySeconds: 10
+  periodSeconds: 5
+  timeoutSeconds: 3
+  failureThreshold: 3
+
+# Non-sensitive configuration (ConfigMap)
+config:
+  PYTHONUNBUFFERED: "1"
+  LOG_LEVEL: "INFO"
+  FRONTEND_URL: "http://todo-frontend:80"
+
+# Sensitive configuration (Secret)
+# Override these values in values-secrets.yaml or via --set
+secrets:
+  DATABASE_URL: ""
+  GEMINI_API_KEY: ""
+  SECRET_KEY: ""
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

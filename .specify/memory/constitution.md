@@ -1,25 +1,26 @@
 <!--
   Sync Impact Report
   ==================
-  Version change: 1.1.0 → 1.2.0
-  Bump rationale: MINOR - Added Phase III scope definition and technology stack (new phase gate extension)
+  Version change: 1.2.0 → 1.3.0
+  Bump rationale: MINOR - Added Phase IV scope definition for Local Kubernetes Deployment (new phase gate extension)
 
   Modified principles:
-  - None - all existing Phase I principles preserved
+  - None - all existing Phase I, II, III principles preserved
 
   Added sections:
-  - "Included Scope (Phase III)" under Scope Definition
-  - Phase III technology stack table
-  - Phase III MCP tools specification
-  - Phase III transition gate in Phase Gate section
+  - "Included Scope (Phase IV)" under Scope Definition
+  - Phase IV technology stack table
+  - Phase IV deliverables specification
+  - Phase IV transition gate in Phase Gate section
+  - Updated "Explicitly Excluded Scope" to reflect Phase IV changes
 
   Removed sections:
   - None
 
   Templates requiring updates:
-  - .specify/templates/plan-template.md ✅ (no conflicts; Phase III uses same structure)
-  - .specify/templates/spec-template.md ✅ (no conflicts)
-  - .specify/templates/tasks-template.md ✅ (structure compatible)
+  - .specify/templates/plan-template.md ✅ (no conflicts; Phase IV uses infrastructure focus, compatible structure)
+  - .specify/templates/spec-template.md ✅ (no conflicts; infrastructure specs follow same pattern)
+  - .specify/templates/tasks-template.md ✅ (structure compatible; infrastructure tasks follow same phases)
 
   Follow-up TODOs: None
 -->
@@ -27,7 +28,7 @@
 # Todo Application Constitution
 
 **Document Status**: Authoritative / Binding
-**Applies To**: Phase I (core), Phase II and Phase III (extended scope)
+**Applies To**: Phase I (core), Phase II, Phase III, and Phase IV (extended scope)
 **Execution Agent**: Claude Code (AI Engineer)
 **Authoring Authority**: Human Architect (Specs Only)
 **Project Category**: Hobby
@@ -85,7 +86,7 @@ Claude Code MUST NOT:
 - No file I/O (except specification reads during development)
 - No asynchronous programming
 
-**Phase II and Phase III**: External dependencies are permitted as defined in Phase-specific scope.
+**Phase II, Phase III, and Phase IV**: External dependencies are permitted as defined in Phase-specific scope.
 
 ### V. Data Lifetime
 
@@ -94,7 +95,7 @@ Claude Code MUST NOT:
 - All data SHALL be destroyed upon program termination
 - Persistence of any form is strictly forbidden
 
-**Phase II and Phase III:**
+**Phase II, Phase III, and Phase IV:**
 - Database persistence is REQUIRED via Neon Serverless PostgreSQL
 - All data operations MUST go through the defined ORM (SQLModel)
 
@@ -129,6 +130,12 @@ Premature optimization is not permitted.
 - Natural language conversational interface
 - AI agent processes user messages via MCP tools
 - Friendly confirmations and error handling
+
+**Phase IV (Kubernetes):**
+- All deployments MUST be declarative via Helm charts
+- Services MUST be accessible within Minikube cluster
+- Pods MUST be horizontally scalable via replicas
+- No hardcoded environment values in charts
 
 All interfaces MUST NOT:
 - Crash due to user input
@@ -169,6 +176,11 @@ Direct code modification is strictly forbidden.
 - Functionally complete (all user stories implemented)
 - Authentication and task CRUD operational
 - Database persistence verified
+
+**Transition to Phase IV** is permitted only after Phase III is:
+- Functionally complete (AI chatbot operational)
+- All MCP tools working correctly
+- Frontend and backend integrated and stable
 
 ## Scope Definition
 
@@ -241,9 +253,94 @@ Direct code modification is strictly forbidden.
 |--------|----------|-------------|
 | POST | /api/{user_id}/chat | Send message, get AI response, execute MCP tools |
 
+### Included Scope (Phase IV)
+
+⚠️ **Rule of Preservation:** All Phase I, Phase II, and Phase III specifications, architecture, code, and behavior MUST remain unchanged. Phase IV is strictly an infrastructure and deployment extension.
+
+**Objective:** Deploy the existing Phase III Todo AI Chatbot as a cloud-native application on a local Kubernetes cluster using Minikube, Helm Charts, and AI-assisted DevOps tools. No application-level features or logic may be modified.
+
+**Development Philosophy:** Follow Spec-Driven Infrastructure Automation using the Agentic Dev Stack. Workflow MUST be: Write spec → Generate plan → Break into tasks → Implement via Claude Code / AI tools. Manual infrastructure coding is discouraged unless AI tooling is unavailable.
+
+**Scope Constraints:**
+- This phase focuses ONLY on deployment, orchestration, and infrastructure
+- Frontend and backend logic from Phase III must be reused as-is
+- No changes to APIs, MCP tools, agents, or database schema
+- All deployments must be reproducible locally using Minikube
+- The system must remain stateless at the server level
+
+**Phase IV Technology Stack:**
+
+| Layer | Technology | Notes |
+|-------|------------|-------|
+| Containerization | Docker (Docker Desktop) | Multi-stage builds preferred |
+| Docker AI | Docker AI Agent (Gordon) | Dockerfile generation, optimization |
+| Orchestration | Kubernetes (Minikube) | Local cluster deployment |
+| Package Manager | Helm Charts | Declarative deployment configuration |
+| AI DevOps | kubectl-ai, kagent | AI-assisted Kubernetes operations |
+| Application | Phase III Todo AI Chatbot | Unchanged from Phase III |
+
+**Phase IV Mandatory Requirements:**
+
+1. **Containerization**
+   - Containerize frontend (ChatKit-based UI)
+   - Containerize backend (FastAPI + OpenAI Agents SDK + MCP server)
+   - Prefer multi-stage Docker builds
+   - Images must be runnable inside Minikube
+
+2. **Docker AI Usage**
+   - Use Docker AI Agent (Gordon) for Dockerfile generation, image optimization, build/run assistance
+   - If Gordon is unavailable, use Claude Code to generate Docker commands
+
+3. **Kubernetes Deployment**
+   - Deploy the system on a local Minikube cluster
+   - Use Kubernetes best practices (Deployments, Services)
+   - Support scaling via replicas
+
+4. **Helm Charts (Required)**
+   - Create Helm charts for todo-frontend and todo-backend
+   - Charts must support configuration via values.yaml
+   - No hardcoded environment values
+
+5. **AI-Assisted Kubernetes Operations**
+   - Use kubectl-ai for deployment creation, scaling, debugging failing pods
+   - Use kagent for cluster health analysis, resource optimization insights
+
+**Phase IV Operational Principles:**
+- Infrastructure must be declarative and reproducible
+- Helm is the single source of truth for Kubernetes deployment
+- AI tools are first-class operators, not optional helpers
+- The system must be horizontally scalable
+- Server restarts must not affect application state
+
+**Phase IV Deliverables:**
+
+1. GitHub repository containing:
+   - /frontend (unchanged application code)
+   - /backend (unchanged application code)
+   - Dockerfiles for frontend and backend
+   - /helm charts for frontend and backend
+   - README with Minikube + Helm setup instructions
+
+2. Proof of Deployment:
+   - Running pods in Minikube
+   - Accessible frontend service
+   - Backend service reachable inside cluster
+
+3. AI DevOps Evidence:
+   - Documented kubectl-ai usage
+   - Documented kagent usage
+   - Docker AI (Gordon) usage where available
+
+**Phase IV Success Criteria:**
+- Application runs fully on Minikube
+- No Phase III functionality is broken
+- Helm charts control all deployments
+- AI tools are actively used for DevOps tasks
+- Deployment can be reproduced from README
+
 ### Explicitly Excluded Scope (All Phases)
 
-- Docker, Kubernetes, or cloud orchestration
+- Cloud orchestration (AWS EKS, GKE, AKS) - local Minikube only for Phase IV
 - Background job queues (Phase I, II)
 - Real-time websockets (Phase I, II)
 - Multi-tenant enterprise features
@@ -268,4 +365,4 @@ This Constitution supersedes all other practices for all Phase development.
 - Complexity must be justified against the simplicity principle
 - Constitution checks are mandatory gates in the planning phase
 
-**Version**: 1.2.0 | **Ratified**: 2025-12-18 | **Last Amended**: 2025-12-19
+**Version**: 1.3.0 | **Ratified**: 2025-12-18 | **Last Amended**: 2025-12-20

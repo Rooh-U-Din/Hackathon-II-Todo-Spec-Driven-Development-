@@ -73,5 +73,10 @@ next-env.d.ts
 coverage/
 .nyc_output/
 
-# Exclude backend from this repo
-backend/
+# Helm charts
+helm/todo-app/charts/*/charts/
+
+# Kubernetes
+*.secret.yaml
+secrets/
+kubeconfig*

@@ -1,0 +1,33 @@
+apiVersion: v2
+name: todo-app
+description: Todo AI Chatbot Application - Helm Chart for Kubernetes Deployment
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+
+# Dependencies - subcharts for frontend and backend
+dependencies:
+  - name: frontend
+    version: 0.1.0
+    repository: file://charts/frontend
+    condition: frontend.enabled
+  - name: backend
+    version: 0.1.0
+    repository: file://charts/backend
+    condition: backend.enabled
+
+keywords:
+  - todo
+  - ai
+  - chatbot
+  - fastapi
+  - nextjs
+  - kubernetes
+
+maintainers:
+  - name: Phase IV Developer
+    email: developer@example.com
+
+home: https://github.com/example/todo-app
+sources:
+  - https://github.com/example/todo-app

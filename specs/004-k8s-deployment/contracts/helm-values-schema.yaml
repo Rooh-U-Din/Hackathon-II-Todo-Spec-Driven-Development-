@@ -1,0 +1,300 @@
+# Helm Values Schema for Todo App
+# This schema defines the contract for configuring the Kubernetes deployment
+# Version: 0.1.0
+
+$schema: http://json-schema.org/draft-07/schema#
+type: object
+title: Todo App Helm Values Schema
+description: Configuration schema for deploying Todo AI Chatbot on Kubernetes
+
+properties:
+  # Global settings
+  global:
+    type: object
+    description: Global settings applied to all subcharts
+    properties:
+      imagePullPolicy:
+        type: string
+        enum: [Always, Never, IfNotPresent]
+        default: Never
+        description: Image pull policy for all containers
+      nodeEnv:
+        type: string
+        enum: [development, production]
+        default: production
+        description: Application environment
+
+  # Frontend subchart values
+  frontend:
+    type: object
+    description: Frontend application configuration
+    required: [replicaCount, image, service]
+    properties:
+      enabled:
+        type: boolean
+        default: true
+        description: Enable frontend deployment
+
+      replicaCount:
+        type: integer
+        minimum: 1
+        maximum: 10
+        default: 1
+        description: Number of frontend pod replicas
+
+      image:
+        type: object
+        required: [repository, tag]
+        properties:
+          repository:
+            type: string
+            default: todo-frontend
+            description: Docker image repository
+          tag:
+            type: string
+            default: local
+            description: Docker image tag
+          pullPolicy:
+            type: string
+            enum: [Always, Never, IfNotPresent]
+            default: Never
+
+      service:
+        type: object
+        required: [type, port, nodePort]
+        properties:
+          type:
+            type: string
+            enum: [ClusterIP, NodePort, LoadBalancer]
+            default: NodePort
+          port:
+            type: integer
+            default: 80
+            description: Service port
+          targetPort:
+            type: integer
+            default: 3000
+            description: Container port
+          nodePort:
+            type: integer
+            minimum: 30000
+            maximum: 32767
+            default: 30080
+            description: NodePort for external access
+
+      resources:
+        type: object
+        properties:
+          requests:
+            type: object
+            properties:
+              cpu:
+                type: string
+                default: "100m"
+              memory:
+                type: string
+                default: "128Mi"
+          limits:
+            type: object
+            properties:
+              cpu:
+                type: string
+                default: "500m"
+              memory:
+                type: string
+                default: "512Mi"
+
+      livenessProbe:
+        type: object
+        properties:
+          httpGet:
+            type: object
+            properties:
+              path:
+                type: string
+                default: "/"
+              port:
+                type: integer
+                default: 3000
+          initialDelaySeconds:
+            type: integer
+            default: 10
+          periodSeconds:
+            type: integer
+            default: 10
+
+      readinessProbe:
+        type: object
+        properties:
+          httpGet:
+            type: object
+            properties:
+              path:
+                type: string
+                default: "/"
+              port:
+                type: integer
+                default: 3000
+          initialDelaySeconds:
+            type: integer
+            default: 5
+          periodSeconds:
+            type: integer
+            default: 5
+
+      env:
+        type: object
+        description: Environment variables for frontend
+        properties:
+          NEXT_PUBLIC_API_URL:
+            type: string
+            description: Backend API URL for client-side requests
+
+  # Backend subchart values
+  backend:
+    type: object
+    description: Backend application configuration
+    required: [replicaCount, image, service]
+    properties:
+      enabled:
+        type: boolean
+        default: true
+        description: Enable backend deployment
+
+      replicaCount:
+        type: integer
+        minimum: 1
+        maximum: 10
+        default: 1
+        description: Number of backend pod replicas
+
+      image:
+        type: object
+        required: [repository, tag]
+        properties:
+          repository:
+            type: string
+            default: todo-backend
+            description: Docker image repository
+          tag:
+            type: string
+            default: local
+            description: Docker image tag
+          pullPolicy:
+            type: string
+            enum: [Always, Never, IfNotPresent]
+            default: Never
+
+      service:
+        type: object
+        required: [type, port, nodePort]
+        properties:
+          type:
+            type: string
+            enum: [ClusterIP, NodePort, LoadBalancer]
+            default: NodePort
+          port:
+            type: integer
+            default: 80
+            description: Service port
+          targetPort:
+            type: integer
+            default: 8000
+            description: Container port
+          nodePort:
+            type: integer
+            minimum: 30000
+            maximum: 32767
+            default: 30081
+            description: NodePort for external access
+
+      resources:
+        type: object
+        properties:
+          requests:
+            type: object
+            properties:
+              cpu:
+                type: string
+                default: "200m"
+              memory:
+                type: string
+                default: "256Mi"
+          limits:
+            type: object
+            properties:
+              cpu:
+                type: string
+                default: "1000m"
+              memory:
+                type: string
+                default: "1Gi"
+
+      livenessProbe:
+        type: object
+        properties:
+          httpGet:
+            type: object
+            properties:
+              path:
+                type: string
+                default: "/health"
+              port:
+                type: integer
+                default: 8000
+          initialDelaySeconds:
+            type: integer
+            default: 15
+          periodSeconds:
+            type: integer
+            default: 10
+
+      readinessProbe:
+        type: object
+        properties:
+          httpGet:
+            type: object
+            properties:
+              path:
+                type: string
+                default: "/health"
+              port:
+                type: integer
+                default: 8000
+          initialDelaySeconds:
+            type: integer
+            default: 10
+          periodSeconds:
+            type: integer
+            default: 5
+
+      config:
+        type: object
+        description: Non-sensitive configuration (ConfigMap)
+        properties:
+          PYTHONUNBUFFERED:
+            type: string
+            default: "1"
+          LOG_LEVEL:
+            type: string
+            enum: [DEBUG, INFO, WARNING, ERROR]
+            default: INFO
+
+      secrets:
+        type: object
+        description: Sensitive configuration (Secret) - values should be base64 encoded in production
+        properties:
+          DATABASE_URL:
+            type: string
+            description: Neon PostgreSQL connection string
+          GEMINI_API_KEY:
+            type: string
+            description: Google Gemini API key for AI chatbot
+          SECRET_KEY:
+            type: string
+            description: JWT signing secret key
+
+# Required top-level properties
+required:
+  - frontend
+  - backend
