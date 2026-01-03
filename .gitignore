@@ -80,3 +80,7 @@ helm/todo-app/charts/*/charts/
 *.secret.yaml
 secrets/
 kubeconfig*
+values-secrets.yaml
+
+# Helm packaged charts
+*.tgz
