@@ -1,0 +1,22 @@
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: taskpubsub
+  namespace: default
+spec:
+  type: pubsub.redis
+  version: v1
+  metadata:
+    - name: redisHost
+      value: "redis:6379"
+    - name: redisPassword
+      value: ""
+    - name: consumerID
+      value: "todo-backend"
+    - name: enableTLS
+      value: "false"
+scopes:
+  - todo-backend
+  - notification-service
+  - recurring-task-service
+  - audit-service

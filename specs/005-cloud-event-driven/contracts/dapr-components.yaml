@@ -1,0 +1,298 @@
+# Dapr Component Specifications - Phase V
+# These define the infrastructure abstraction layer configuration
+
+---
+# Pub/Sub Component - Kafka (Redpanda)
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: todo-pubsub
+  namespace: default
+spec:
+  type: pubsub.kafka
+  version: v1
+  metadata:
+    # Broker configuration
+    - name: brokers
+      value: "redpanda:9092"  # In-cluster Redpanda service
+
+    # Consumer configuration
+    - name: consumerGroup
+      value: "todo-app"
+    - name: initialOffset
+      value: "oldest"
+    - name: maxMessageBytes
+      value: "1048576"  # 1MB
+
+    # Producer configuration
+    - name: clientID
+      value: "todo-backend"
+    - name: requiredAcks
+      value: "all"
+    - name: retryMax
+      value: "3"
+
+    # Authentication (disabled for local, enable for production)
+    - name: authRequired
+      value: "false"
+    # - name: saslUsername
+    #   secretKeyRef:
+    #     name: kafka-secrets
+    #     key: username
+    # - name: saslPassword
+    #   secretKeyRef:
+    #     name: kafka-secrets
+    #     key: password
+
+---
+# State Store Component - PostgreSQL
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: todo-statestore
+  namespace: default
+spec:
+  type: state.postgresql
+  version: v1
+  metadata:
+    - name: connectionString
+      secretKeyRef:
+        name: database-secrets
+        key: connection-string
+    - name: tableName
+      value: "dapr_state"
+    - name: keyPrefix
+      value: "name"  # Use actor/app name as prefix
+    - name: cleanupIntervalInSeconds
+      value: "3600"  # Cleanup expired state hourly
+
+---
+# Secret Store Component - Kubernetes Secrets
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: todo-secrets
+  namespace: default
+spec:
+  type: secretstores.kubernetes
+  version: v1
+  metadata: []
+
+---
+# Subscription: Notification Service
+apiVersion: dapr.io/v2alpha1
+kind: Subscription
+metadata:
+  name: notification-subscription
+  namespace: default
+spec:
+  pubsubname: todo-pubsub
+  topic: reminders
+  routes:
+    default: /events/reminder
+  deadLetterTopic: reminders-dlq
+
+---
+# Subscription: Recurring Task Service
+apiVersion: dapr.io/v2alpha1
+kind: Subscription
+metadata:
+  name: recurring-task-subscription
+  namespace: default
+spec:
+  pubsubname: todo-pubsub
+  topic: task-events
+  routes:
+    rules:
+      - match: event.type == "task.completed"
+        path: /events/task-completed
+    default: /events/task  # Catch-all for other events
+  deadLetterTopic: task-events-dlq
+
+---
+# Subscription: Audit Service
+apiVersion: dapr.io/v2alpha1
+kind: Subscription
+metadata:
+  name: audit-subscription-tasks
+  namespace: default
+spec:
+  pubsubname: todo-pubsub
+  topic: task-events
+  routes:
+    default: /events/audit
+  deadLetterTopic: audit-dlq
+
+---
+apiVersion: dapr.io/v2alpha1
+kind: Subscription
+metadata:
+  name: audit-subscription-reminders
+  namespace: default
+spec:
+  pubsubname: todo-pubsub
+  topic: reminders
+  routes:
+    default: /events/audit
+  deadLetterTopic: audit-dlq
+
+---
+# Configuration: Tracing and Metrics
+apiVersion: dapr.io/v1alpha1
+kind: Configuration
+metadata:
+  name: todo-config
+  namespace: default
+spec:
+  tracing:
+    samplingRate: "1"  # 100% for development, lower for production
+    zipkin:
+      endpointAddress: "http://zipkin:9411/api/v2/spans"
+
+  metric:
+    enabled: true
+
+  mtls:
+    enabled: false  # Enable in production
+
+  features:
+    - name: "ServiceInvocation.AllowRetries"
+      enabled: true
+    - name: "PubSub.DeadLetter"
+      enabled: true
+
+---
+# Resiliency Policy
+apiVersion: dapr.io/v1alpha1
+kind: Resiliency
+metadata:
+  name: todo-resiliency
+  namespace: default
+spec:
+  policies:
+    timeouts:
+      general: 30s
+      pubsubPublish: 10s
+
+    retries:
+      pubsubPublish:
+        policy: constant
+        duration: 1s
+        maxRetries: 3
+
+      stateOperation:
+        policy: exponential
+        maxInterval: 10s
+        maxRetries: 5
+
+    circuitBreakers:
+      pubsubCircuitBreaker:
+        maxRequests: 1
+        interval: 10s
+        timeout: 30s
+        trip: consecutiveFailures >= 5
+
+  targets:
+    components:
+      todo-pubsub:
+        outbound:
+          retry: pubsubPublish
+          circuitBreaker: pubsubCircuitBreaker
+          timeout: pubsubPublish
+
+      todo-statestore:
+        outbound:
+          retry: stateOperation
+          timeout: general
+
+---
+# Service Invocation Configuration
+# Backend service configuration for Dapr sidecar
+service_config:
+  backend:
+    app_id: todo-backend
+    app_port: 8000
+    app_protocol: http
+    enable_api_logging: true
+    dapr_http_port: 3500
+    dapr_grpc_port: 50001
+
+  notification-service:
+    app_id: notification-service
+    app_port: 8001
+    app_protocol: http
+    dapr_http_port: 3500
+
+  recurring-task-service:
+    app_id: recurring-task-service
+    app_port: 8002
+    app_protocol: http
+    dapr_http_port: 3500
+
+  audit-service:
+    app_id: audit-service
+    app_port: 8003
+    app_protocol: http
+    dapr_http_port: 3500
+
+---
+# Jobs API Configuration (for reminders)
+# Note: Dapr Jobs API is configured via runtime, not components
+jobs_api_config:
+  enabled: true
+  scheduler_config:
+    # Scheduler replicates: 1 for local, 3 for HA
+    replicas: 1
+    # Job storage uses etcd embedded in scheduler
+
+  job_template:
+    # Template for reminder jobs
+    name: "reminder-{reminder_id}"
+    schedule: "@once"  # One-time execution
+    data:
+      reminder_id: "{reminder_id}"
+      task_id: "{task_id}"
+      user_id: "{user_id}"
+    # Callback to notification service
+    target:
+      type: pubsub
+      pubsub: todo-pubsub
+      topic: reminders
+      data_template: |
+        {
+          "specversion": "1.0",
+          "type": "reminder.due",
+          "source": "/dapr/jobs",
+          "id": "{job_id}",
+          "time": "{trigger_time}",
+          "data": {
+            "reminder_id": "{reminder_id}",
+            "task_id": "{task_id}",
+            "user_id": "{user_id}"
+          }
+        }
+
+---
+# Environment-specific overrides
+environments:
+  local:
+    pubsub:
+      brokers: "localhost:9092"
+    statestore:
+      connectionString: "host=localhost user=postgres password=postgres dbname=todo"
+
+  minikube:
+    pubsub:
+      brokers: "redpanda.default.svc.cluster.local:9092"
+    statestore:
+      connectionString: "${DATABASE_URL}"  # From Kubernetes secret
+
+  cloud:
+    pubsub:
+      brokers: "${KAFKA_BROKERS}"  # Managed Kafka endpoint
+      authRequired: "true"
+      saslMechanism: "PLAIN"
+    statestore:
+      connectionString: "${DATABASE_URL}"  # Neon PostgreSQL
+    mtls:
+      enabled: true

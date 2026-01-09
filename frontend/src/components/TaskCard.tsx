@@ -30,10 +30,40 @@ export default function TaskCard({ task, onToggle, onDelete }: TaskCardProps) {
     year: 'numeric',
   });
 
+  // Phase V: Due date formatting and overdue check
+  const isOverdue = task.due_at && !task.is_completed && new Date(task.due_at) < new Date();
+  const formattedDueDate = task.due_at
+    ? new Date(task.due_at).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+      })
+    : null;
+
+  // Phase V: Priority colors
+  const priorityConfig = {
+    low: { bg: 'bg-green-100', text: 'text-green-700', label: 'Low' },
+    medium: { bg: 'bg-yellow-100', text: 'text-yellow-700', label: 'Med' },
+    high: { bg: 'bg-red-100', text: 'text-red-700', label: 'High' },
+  };
+
+  // Phase V: Recurrence labels
+  const recurrenceLabels = {
+    none: null,
+    daily: 'Daily',
+    weekly: 'Weekly',
+    custom: task.recurrence_interval ? `Every ${task.recurrence_interval}d` : 'Custom',
+  };
+
   return (
     <Link
       href={`/tasks/${task.id}`}
-      className="block rounded-lg border border-gray-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md dark:border-gray-700 dark:bg-gray-800"
+      className={`block rounded-lg border bg-white p-4 shadow-sm transition-shadow hover:shadow-md dark:bg-gray-800 ${
+        isOverdue
+          ? 'border-red-300 dark:border-red-700'
+          : 'border-gray-200 dark:border-gray-700'
+      }`}
     >
       <div className="flex items-start gap-3">
         <button
@@ -57,21 +87,82 @@ export default function TaskCard({ task, onToggle, onDelete }: TaskCardProps) {
         </button>
 
         <div className="flex-1 min-w-0">
-          <h3
-            className={`text-sm font-medium ${
-              task.is_completed
-                ? 'text-gray-500 line-through dark:text-gray-400'
-                : 'text-gray-900 dark:text-white'
-            }`}
-          >
-            {task.title}
-          </h3>
+          <div className="flex items-center gap-2 flex-wrap">
+            <h3
+              className={`text-sm font-medium ${
+                task.is_completed
+                  ? 'text-gray-500 line-through dark:text-gray-400'
+                  : 'text-gray-900 dark:text-white'
+              }`}
+            >
+              {task.title}
+            </h3>
+
+            {/* Phase V: Priority badge */}
+            {task.priority && task.priority !== 'medium' && (
+              <span
+                className={`inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${priorityConfig[task.priority].bg} ${priorityConfig[task.priority].text}`}
+              >
+                {priorityConfig[task.priority].label}
+              </span>
+            )}
+
+            {/* Phase V: Recurrence badge */}
+            {task.recurrence_type && task.recurrence_type !== 'none' && (
+              <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">
+                <svg className="w-3 h-3 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+                {recurrenceLabels[task.recurrence_type]}
+              </span>
+            )}
+
+            {/* Phase V: Tags */}
+            {task.tags && task.tags.length > 0 && (
+              <div className="flex flex-wrap gap-1">
+                {task.tags.slice(0, 3).map((tag) => (
+                  <span
+                    key={tag.id}
+                    className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium"
+                    style={{
+                      backgroundColor: tag.color ? `${tag.color}20` : '#e5e7eb',
+                      color: tag.color || '#374151',
+                    }}
+                  >
+                    {tag.name}
+                  </span>
+                ))}
+                {task.tags.length > 3 && (
+                  <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600">
+                    +{task.tags.length - 3}
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+
           {task.description && (
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400 line-clamp-2">
               {task.description}
             </p>
           )}
-          <p className="mt-2 text-xs text-gray-400 dark:text-gray-500">{formattedDate}</p>
+
+          <div className="mt-2 flex items-center gap-3 text-xs">
+            {/* Phase V: Due date with overdue indicator */}
+            {formattedDueDate && (
+              <span className={`flex items-center gap-1 ${isOverdue ? 'text-red-600 font-medium' : 'text-gray-500 dark:text-gray-400'}`}>
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                {isOverdue ? 'Overdue: ' : 'Due: '}{formattedDueDate}
+              </span>
+            )}
+
+            {/* Created date */}
+            <span className="text-gray-400 dark:text-gray-500">
+              Created {formattedDate}
+            </span>
+          </div>
         </div>
 
         <button

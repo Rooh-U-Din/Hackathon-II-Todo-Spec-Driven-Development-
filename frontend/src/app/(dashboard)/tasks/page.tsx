@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useTasks } from '@/hooks/useTasks';
+import { useEffect, useState, useCallback } from 'react';
+import { useTasks, TaskFilters } from '@/hooks/useTasks';
 import TaskList from '@/components/TaskList';
 import TaskForm from '@/components/TaskForm';
+import TaskFiltersComponent, { TaskFilterState } from '@/components/TaskFilters';
 import type { TaskCreate } from '../../../lib/types';
 
 export default function TasksPage() {
@@ -11,10 +12,24 @@ export default function TasksPage() {
     useTasks();
   const [showForm, setShowForm] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+  const [filters, setFilters] = useState<TaskFilterState>({});
+
+  // Convert UI filter state to API filter format
+  const buildApiFilters = useCallback((uiFilters: TaskFilterState): TaskFilters => {
+    const apiFilters: TaskFilters = {};
+
+    if (uiFilters.completed !== undefined) apiFilters.completed = uiFilters.completed;
+    if (uiFilters.priority) apiFilters.priority = uiFilters.priority;
+    if (uiFilters.search) apiFilters.search = uiFilters.search;
+    if (uiFilters.sortBy) apiFilters.sort_by = uiFilters.sortBy;
+    if (uiFilters.sortOrder) apiFilters.sort_order = uiFilters.sortOrder;
+
+    return apiFilters;
+  }, []);
 
   useEffect(() => {
-    fetchTasks();
-  }, [fetchTasks]);
+    fetchTasks(buildApiFilters(filters));
+  }, [fetchTasks, filters, buildApiFilters]);
 
   const handleCreateTask = async (data: TaskCreate) => {
     setIsCreating(true);
@@ -22,6 +37,20 @@ export default function TasksPage() {
     setIsCreating(false);
     if (task) {
       setShowForm(false);
+      // Refresh tasks to ensure proper sorting/filtering
+      fetchTasks(buildApiFilters(filters));
+    }
+  };
+
+  const handleFilterChange = (newFilters: TaskFilterState) => {
+    setFilters(newFilters);
+  };
+
+  const handleToggleTask = async (id: string) => {
+    await toggleTask(id);
+    // Optionally refresh if filtering by completed status
+    if (filters.completed !== undefined) {
+      fetchTasks(buildApiFilters(filters));
     }
   };
 
@@ -67,10 +96,15 @@ export default function TasksPage() {
         </div>
       )}
 
+      {/* Phase V: Task Filters */}
+      <div className="mb-4">
+        <TaskFiltersComponent filters={filters} onFilterChange={handleFilterChange} />
+      </div>
+
       {isLoading && tasks.length === 0 ? (
         <div className="py-12 text-center text-gray-500">Loading tasks...</div>
       ) : (
-        <TaskList tasks={tasks} onToggle={toggleTask} onDelete={deleteTask} />
+        <TaskList tasks={tasks} onToggle={handleToggleTask} onDelete={deleteTask} />
       )}
     </div>
   );

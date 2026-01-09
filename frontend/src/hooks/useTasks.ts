@@ -2,14 +2,26 @@
 
 import { useState, useCallback } from 'react';
 import { api, ApiError } from '../lib/api';
-import type { Task, TaskCreate, TaskUpdate, TaskListResponse, TaskResponse } from '../lib/types';
+import type { Task, TaskCreate, TaskUpdate, TaskListResponse, TaskResponse, Priority } from '../lib/types';
+
+// Phase V: Filter options
+export interface TaskFilters {
+  completed?: boolean;
+  priority?: Priority;
+  tag_id?: string;
+  due_before?: string;
+  due_after?: string;
+  search?: string;
+  sort_by?: 'created_at' | 'due_at' | 'priority';
+  sort_order?: 'asc' | 'desc';
+}
 
 interface UseTasksReturn {
   tasks: Task[];
   total: number;
   isLoading: boolean;
   error: string | null;
-  fetchTasks: (completed?: boolean, limit?: number, offset?: number) => Promise<void>;
+  fetchTasks: (filters?: TaskFilters, limit?: number, offset?: number) => Promise<void>;
   getTask: (id: string) => Promise<Task | null>;
   createTask: (data: TaskCreate) => Promise<Task | null>;
   updateTask: (id: string, data: TaskUpdate) => Promise<Task | null>;
@@ -26,13 +38,23 @@ export function useTasks(): UseTasksReturn {
 
   const clearError = useCallback(() => setError(null), []);
 
-  const fetchTasks = useCallback(async (completed?: boolean, limit = 50, offset = 0) => {
+  const fetchTasks = useCallback(async (filters?: TaskFilters, limit = 50, offset = 0) => {
     setIsLoading(true);
     setError(null);
 
     try {
       const params = new URLSearchParams();
-      if (completed !== undefined) params.set('completed', String(completed));
+
+      // Phase V: Enhanced filtering
+      if (filters?.completed !== undefined) params.set('completed', String(filters.completed));
+      if (filters?.priority) params.set('priority', filters.priority);
+      if (filters?.tag_id) params.set('tag_id', filters.tag_id);
+      if (filters?.due_before) params.set('due_before', filters.due_before);
+      if (filters?.due_after) params.set('due_after', filters.due_after);
+      if (filters?.search) params.set('search', filters.search);
+      if (filters?.sort_by) params.set('sort_by', filters.sort_by);
+      if (filters?.sort_order) params.set('sort_order', filters.sort_order);
+
       params.set('limit', String(limit));
       params.set('offset', String(offset));
 

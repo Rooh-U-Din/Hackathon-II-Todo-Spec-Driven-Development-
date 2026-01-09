@@ -1,0 +1,519 @@
+# Event Schemas - Phase V Cloud Events
+# Format: CloudEvents 1.0 Specification
+# Encoding: JSON
+
+---
+# Kafka Topics Configuration
+topics:
+  task-events:
+    description: All task lifecycle events
+    partitions: 3
+    replication_factor: 1  # Local: 1, Production: 3
+    retention_ms: 604800000  # 7 days
+    partition_key: task_id
+    events:
+      - task.created
+      - task.updated
+      - task.completed
+      - task.deleted
+
+  reminders:
+    description: Reminder scheduling and delivery events
+    partitions: 3
+    replication_factor: 1
+    retention_ms: 86400000  # 1 day
+    partition_key: user_id
+    events:
+      - reminder.scheduled
+      - reminder.due
+      - reminder.sent
+      - reminder.cancelled
+      - reminder.failed
+
+  task-updates:
+    description: Real-time sync events for connected clients
+    partitions: 3
+    replication_factor: 1
+    retention_ms: 3600000  # 1 hour
+    partition_key: user_id
+    events:
+      - sync.task_changed
+      - sync.tag_changed
+
+---
+# CloudEvents Base Schema
+cloudevents_base:
+  specversion: "1.0"
+  required_attributes:
+    - specversion
+    - type
+    - source
+    - id
+    - time
+  optional_attributes:
+    - datacontenttype
+    - subject
+    - correlationid
+
+---
+# Event Type Definitions
+
+event_types:
+  # ============================================
+  # Task Events (topic: task-events)
+  # ============================================
+
+  task.created:
+    description: A new task has been created
+    topic: task-events
+    source: /backend/tasks
+    datacontenttype: application/json
+    schema:
+      type: object
+      required:
+        - task_id
+        - user_id
+        - title
+        - created_at
+      properties:
+        task_id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        recurrence_type:
+          type: string
+          enum: [none, daily, weekly, custom]
+        recurrence_interval:
+          type: integer
+          nullable: true
+        due_at:
+          type: string
+          format: date-time
+          nullable: true
+        priority:
+          type: string
+          enum: [low, medium, high]
+        tag_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        created_at:
+          type: string
+          format: date-time
+    example:
+      specversion: "1.0"
+      type: task.created
+      source: /backend/tasks
+      id: "550e8400-e29b-41d4-a716-446655440000"
+      time: "2026-01-05T10:30:00Z"
+      datacontenttype: application/json
+      data:
+        task_id: "550e8400-e29b-41d4-a716-446655440001"
+        user_id: "550e8400-e29b-41d4-a716-446655440002"
+        title: "Complete Phase V implementation"
+        description: "Event-driven architecture with Dapr"
+        recurrence_type: none
+        due_at: "2026-01-10T17:00:00Z"
+        priority: high
+        tag_ids: ["550e8400-e29b-41d4-a716-446655440003"]
+        created_at: "2026-01-05T10:30:00Z"
+
+  task.updated:
+    description: An existing task has been modified
+    topic: task-events
+    source: /backend/tasks
+    datacontenttype: application/json
+    schema:
+      type: object
+      required:
+        - task_id
+        - user_id
+        - updated_at
+        - changes
+      properties:
+        task_id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        updated_at:
+          type: string
+          format: date-time
+        changes:
+          type: object
+          description: Object containing only changed fields with new values
+          additionalProperties: true
+        previous:
+          type: object
+          description: Object containing previous values of changed fields
+          additionalProperties: true
+    example:
+      specversion: "1.0"
+      type: task.updated
+      source: /backend/tasks
+      id: "550e8400-e29b-41d4-a716-446655440010"
+      time: "2026-01-05T11:00:00Z"
+      datacontenttype: application/json
+      data:
+        task_id: "550e8400-e29b-41d4-a716-446655440001"
+        user_id: "550e8400-e29b-41d4-a716-446655440002"
+        updated_at: "2026-01-05T11:00:00Z"
+        changes:
+          title: "Complete Phase V implementation - UPDATED"
+          priority: medium
+        previous:
+          title: "Complete Phase V implementation"
+          priority: high
+
+  task.completed:
+    description: A task has been marked as complete
+    topic: task-events
+    source: /backend/tasks
+    datacontenttype: application/json
+    consumers:
+      - recurring-task-service  # Generates next occurrence
+      - audit-service           # Logs completion
+    schema:
+      type: object
+      required:
+        - task_id
+        - user_id
+        - completed_at
+      properties:
+        task_id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        completed_at:
+          type: string
+          format: date-time
+        recurrence_type:
+          type: string
+          enum: [none, daily, weekly, custom]
+        recurrence_interval:
+          type: integer
+          nullable: true
+        parent_task_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: If this was a recurring instance, reference to original
+    example:
+      specversion: "1.0"
+      type: task.completed
+      source: /backend/tasks
+      id: "550e8400-e29b-41d4-a716-446655440020"
+      time: "2026-01-05T15:00:00Z"
+      datacontenttype: application/json
+      data:
+        task_id: "550e8400-e29b-41d4-a716-446655440001"
+        user_id: "550e8400-e29b-41d4-a716-446655440002"
+        title: "Daily standup meeting"
+        completed_at: "2026-01-05T15:00:00Z"
+        recurrence_type: daily
+        recurrence_interval: null
+        parent_task_id: null
+
+  task.deleted:
+    description: A task has been deleted
+    topic: task-events
+    source: /backend/tasks
+    datacontenttype: application/json
+    schema:
+      type: object
+      required:
+        - task_id
+        - user_id
+        - deleted_at
+      properties:
+        task_id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        title:
+          type: string
+          description: Task title at time of deletion
+        deleted_at:
+          type: string
+          format: date-time
+        had_pending_reminder:
+          type: boolean
+          description: Whether a pending reminder was cancelled
+    example:
+      specversion: "1.0"
+      type: task.deleted
+      source: /backend/tasks
+      id: "550e8400-e29b-41d4-a716-446655440030"
+      time: "2026-01-05T16:00:00Z"
+      datacontenttype: application/json
+      data:
+        task_id: "550e8400-e29b-41d4-a716-446655440001"
+        user_id: "550e8400-e29b-41d4-a716-446655440002"
+        title: "Cancelled task"
+        deleted_at: "2026-01-05T16:00:00Z"
+        had_pending_reminder: true
+
+  # ============================================
+  # Reminder Events (topic: reminders)
+  # ============================================
+
+  reminder.scheduled:
+    description: A reminder has been scheduled via Dapr Jobs API
+    topic: reminders
+    source: /backend/reminders
+    datacontenttype: application/json
+    schema:
+      type: object
+      required:
+        - reminder_id
+        - task_id
+        - user_id
+        - remind_at
+      properties:
+        reminder_id:
+          type: string
+          format: uuid
+        task_id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        task_title:
+          type: string
+        remind_at:
+          type: string
+          format: date-time
+        dapr_job_id:
+          type: string
+          description: Dapr Jobs API job identifier
+
+  reminder.due:
+    description: A reminder time has been reached (triggered by Dapr Jobs)
+    topic: reminders
+    source: /dapr/jobs
+    datacontenttype: application/json
+    consumers:
+      - notification-service  # Sends notification to user
+    schema:
+      type: object
+      required:
+        - reminder_id
+        - task_id
+        - user_id
+      properties:
+        reminder_id:
+          type: string
+          format: uuid
+        task_id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        task_title:
+          type: string
+        task_due_at:
+          type: string
+          format: date-time
+          nullable: true
+        triggered_at:
+          type: string
+          format: date-time
+
+  reminder.sent:
+    description: A reminder notification has been delivered
+    topic: reminders
+    source: /services/notification
+    datacontenttype: application/json
+    schema:
+      type: object
+      required:
+        - reminder_id
+        - notification_id
+        - channel
+        - sent_at
+      properties:
+        reminder_id:
+          type: string
+          format: uuid
+        notification_id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        channel:
+          type: string
+          enum: [email, web_push]
+        recipient:
+          type: string
+        sent_at:
+          type: string
+          format: date-time
+
+  reminder.cancelled:
+    description: A pending reminder has been cancelled
+    topic: reminders
+    source: /backend/reminders
+    datacontenttype: application/json
+    schema:
+      type: object
+      required:
+        - reminder_id
+        - task_id
+        - reason
+      properties:
+        reminder_id:
+          type: string
+          format: uuid
+        task_id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        reason:
+          type: string
+          enum: [task_completed, task_deleted, user_cancelled, replaced]
+        cancelled_at:
+          type: string
+          format: date-time
+
+  reminder.failed:
+    description: A reminder notification delivery failed
+    topic: reminders
+    source: /services/notification
+    datacontenttype: application/json
+    schema:
+      type: object
+      required:
+        - reminder_id
+        - error
+      properties:
+        reminder_id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        channel:
+          type: string
+          enum: [email, web_push]
+        error:
+          type: string
+        retry_count:
+          type: integer
+        will_retry:
+          type: boolean
+        failed_at:
+          type: string
+          format: date-time
+
+  # ============================================
+  # Sync Events (topic: task-updates)
+  # ============================================
+
+  sync.task_changed:
+    description: Real-time notification of task change for connected clients
+    topic: task-updates
+    source: /backend/tasks
+    datacontenttype: application/json
+    schema:
+      type: object
+      required:
+        - user_id
+        - action
+        - task_id
+      properties:
+        user_id:
+          type: string
+          format: uuid
+        action:
+          type: string
+          enum: [created, updated, completed, deleted]
+        task_id:
+          type: string
+          format: uuid
+        task:
+          type: object
+          description: Full task object for created/updated, null for deleted
+          nullable: true
+
+  sync.tag_changed:
+    description: Real-time notification of tag change
+    topic: task-updates
+    source: /backend/tags
+    datacontenttype: application/json
+    schema:
+      type: object
+      required:
+        - user_id
+        - action
+        - tag_id
+      properties:
+        user_id:
+          type: string
+          format: uuid
+        action:
+          type: string
+          enum: [created, updated, deleted]
+        tag_id:
+          type: string
+          format: uuid
+        tag:
+          type: object
+          nullable: true
+
+---
+# Dapr Pub/Sub Configuration
+dapr_pubsub:
+  component_name: todo-pubsub
+  component_type: pubsub.kafka
+  metadata:
+    brokers: "kafka:9092"  # Redpanda in Kubernetes
+    consumerGroup: "todo-app"
+    authRequired: "false"
+    maxMessageBytes: "1048576"  # 1MB
+
+---
+# Consumer Subscription Patterns
+subscriptions:
+  notification-service:
+    pubsub: todo-pubsub
+    topics:
+      - reminders
+    route: /events/reminder
+    deadLetterTopic: reminders-dlq
+
+  recurring-task-service:
+    pubsub: todo-pubsub
+    topics:
+      - task-events
+    route: /events/task
+    filter: "event.type == 'task.completed'"
+    deadLetterTopic: task-events-dlq
+
+  audit-service:
+    pubsub: todo-pubsub
+    topics:
+      - task-events
+      - reminders
+    route: /events/audit
+    # No filter - receives all events
+    deadLetterTopic: audit-dlq
