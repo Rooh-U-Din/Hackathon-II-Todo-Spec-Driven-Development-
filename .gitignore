@@ -84,3 +84,6 @@ values-secrets.yaml
 
 # Helm packaged charts
 *.tgz
+
+# Backend
+backend/
