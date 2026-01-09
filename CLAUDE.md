@@ -197,6 +197,10 @@ If ALL true, suggest:
 Wait for consent; never auto-create ADRs. Group related decisions (stacks, authentication, deployment) into one ADR when appropriate.
 
 ## Active Technologies
+- Python 3.13 (backend services), Node.js 20 (frontend) + Dapr 1.14+, Redpanda (Kafka), GitHub Actions (005-cloud-event-driven)
+- Extended backend with event publishing, 3 consumer microservices (notification, recurring-task, audit) (005-cloud-event-driven)
+- Oracle OKE / Azure AKS / Google GKE for cloud deployment (005-cloud-event-driven)
+
 - Python 3.13 (backend), Node.js 20 (frontend) + Docker, Minikube, Helm 3.x, kubectl (004-k8s-deployment)
 - External Neon PostgreSQL (unchanged from Phase III) (004-k8s-deployment)
 
@@ -250,7 +254,9 @@ frontend/
 ```
 
 ## Recent Changes
-- 004-k8s-deployment: Added Python 3.13 (backend), Node.js 20 (frontend) + Docker, Minikube, Helm 3.x, kubectl
+- 005-cloud-event-driven: Added Dapr 1.14+, Redpanda (Kafka), event-driven microservices, cloud Kubernetes deployment
+- 005-cloud-event-driven: Extended Task model with recurrence, due dates, reminders, priorities, tags
+
 - 004-k8s-deployment: Added Python 3.13 (backend), Node.js 20 (frontend) + Docker, Minikube, Helm 3.x, kubectl
 
 - 003-todo-ai-chatbot: Switched from OpenAI to Google Gemini API for AI chatbot with function calling
@@ -258,4 +264,4 @@ frontend/
 ## Code Standards
 See `.specify/memory/constitution.md` for code quality, testing, performance, security, and architecture principles.
 
-**Last updated**: 2025-12-20
+**Last updated**: 2026-01-05

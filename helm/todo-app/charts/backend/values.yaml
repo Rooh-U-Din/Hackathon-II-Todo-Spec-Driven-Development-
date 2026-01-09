@@ -47,6 +47,11 @@ config:
   PYTHONUNBUFFERED: "1"
   LOG_LEVEL: "INFO"
   FRONTEND_URL: "http://todo-frontend:80"
+  # Phase V: Event publishing configuration
+  EVENTS_ENABLED: "true"
+  DAPR_HTTP_PORT: "3500"
+  DAPR_PUBSUB_NAME: "taskpubsub"
+  DAPR_TOPIC_NAME: "task-events"
 
 # Sensitive configuration (Secret)
 # Override these values in values-secrets.yaml or via --set
@@ -54,6 +59,13 @@ secrets:
   DATABASE_URL: ""
   GEMINI_API_KEY: ""
   SECRET_KEY: ""
+
+# Phase V: Dapr sidecar configuration
+dapr:
+  enabled: false
+  appId: "todo-backend"
+  appProtocol: "http"
+  enableApiLogging: "true"
 
 nodeSelector: {}
 tolerations: []

@@ -12,6 +12,7 @@ This project demonstrates a complete software development lifecycle following **
 | Phase II | Full-Stack Web Application (Next.js + FastAPI) | Complete |
 | Phase III | AI Chatbot with MCP Tool Integration | Complete |
 | Phase IV | Kubernetes Deployment with Helm | Complete |
+| Phase V | Enhanced Task Management (Priorities, Due Dates, Tags, Recurrence) | Complete |
 
 ## Architecture
 
@@ -66,6 +67,15 @@ This project demonstrates a complete software development lifecycle following **
 - **Horizontal Scaling**: Scale replicas without service interruption
 - **Health Monitoring**: Kubernetes liveness/readiness probes
 - **Configuration Management**: Helm values for environment-specific configs
+
+### Phase V: Enhanced Task Management
+- **Priority Levels**: High, Medium, Low priority with visual indicators
+- **Due Dates**: Set due dates with overdue highlighting
+- **Recurring Tasks**: Daily, Weekly, or Custom interval recurrence
+- **Task Tags**: Organize tasks with custom tags (CRUD + assignment)
+- **Task Reminders**: Schedule reminders for tasks
+- **Advanced Filtering**: Filter by status, priority, search, and sort options
+- **Database Migrations**: Alembic migrations for schema evolution
 
 ## Prerequisites
 
@@ -230,6 +240,7 @@ See [AI DevOps Usage](specs/004-k8s-deployment/ai-devops-usage.md) for detailed 
 │   │   ├── services/        # Business logic
 │   │   ├── mcp/             # MCP tool integration
 │   │   └── db/              # Database session
+│   ├── alembic/             # Database migrations (Phase V)
 │   └── pyproject.toml
 ├── frontend/                # Next.js frontend (TypeScript)
 │   ├── src/
@@ -300,4 +311,4 @@ This project was created for hackathon demonstration purposes.
 
 ---
 
-**Version**: 1.0.0 | **Last Updated**: 2026-01-02
+**Version**: 1.1.0 | **Last Updated**: 2026-01-06
