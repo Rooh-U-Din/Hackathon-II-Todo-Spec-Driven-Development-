@@ -1,0 +1,58 @@
+{{- if .Values.dapr.enabled }}
+# Dapr Pub/Sub Component - Kafka (via Redpanda)
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: taskpubsub
+  namespace: {{ .Release.Namespace }}
+spec:
+  type: pubsub.kafka
+  version: v1
+  metadata:
+    - name: brokers
+      value: {{ .Values.dapr.pubsub.brokers | quote }}
+    - name: consumerGroup
+      value: "todo-consumers"
+    - name: authType
+      value: "none"
+    - name: maxMessageBytes
+      value: "1048576"  # 1MB
+    - name: consumeRetryInterval
+      value: "100ms"
+---
+# Dapr State Store Component - PostgreSQL
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: statestore
+  namespace: {{ .Release.Namespace }}
+spec:
+  type: state.postgresql
+  version: v1
+  metadata:
+    - name: connectionString
+      secretKeyRef:
+        name: {{ .Values.dapr.statestore.secretName }}
+        key: {{ .Values.dapr.statestore.secretKey }}
+    - name: tableName
+      value: "dapr_state"
+    - name: keyPrefix
+      value: "name"
+---
+# Dapr Configuration
+apiVersion: dapr.io/v1alpha1
+kind: Configuration
+metadata:
+  name: todoconfig
+  namespace: {{ .Release.Namespace }}
+spec:
+  tracing:
+    samplingRate: "1"
+    zipkin:
+      endpointAddress: ""
+  metric:
+    enabled: true
+  features:
+    - name: resiliency
+      enabled: true
+{{- end }}

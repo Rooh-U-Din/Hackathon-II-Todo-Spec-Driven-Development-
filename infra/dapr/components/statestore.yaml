@@ -1,0 +1,39 @@
+# Dapr State Store Component - PostgreSQL
+# Phase V: Used for distributed state management across services
+# SAFE MODE: New file only, no existing code modified
+
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: taskstatestore
+  namespace: default
+spec:
+  type: state.postgresql
+  version: v1
+  metadata:
+    # Connection string - uses Kubernetes secret in production
+    - name: connectionString
+      secretKeyRef:
+        name: todo-secrets
+        key: DATABASE_URL
+    # Table name for state storage
+    - name: tableName
+      value: "dapr_state"
+    # Key prefix to avoid collisions
+    - name: keyPrefix
+      value: "todo"
+    # Transaction timeout
+    - name: timeoutInSeconds
+      value: "30"
+    # Cleanup interval for expired state
+    - name: cleanupIntervalInSeconds
+      value: "3600"
+    # Actor state store configuration (if using actors)
+    - name: actorStateStore
+      value: "true"
+# Scopes: which app IDs can use this component
+scopes:
+  - todo-backend
+  - notification-service
+  - recurring-task-service
+  - audit-service

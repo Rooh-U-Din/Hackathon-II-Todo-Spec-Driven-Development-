@@ -1,0 +1,32 @@
+# Recurring Task Service Configuration
+replicaCount: 1
+
+image:
+  repository: todo-app/recurring-task-service
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 5002
+
+resources:
+  limits:
+    cpu: 200m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+# Dapr configuration
+dapr:
+  enabled: true
+  appId: recurring-task-service
+  appPort: 5002
+  httpPort: 3500
+
+# Environment variables
+env:
+  DAPR_HTTP_PORT: "3500"
+  PUBSUB_NAME: "taskpubsub"
+  BACKEND_URL: "http://backend:8000"

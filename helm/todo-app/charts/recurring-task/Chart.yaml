@@ -1,0 +1,6 @@
+apiVersion: v2
+name: recurring-task
+description: Recurring Task Service - Dapr consumer for task.completed events
+type: application
+version: 0.1.0
+appVersion: "1.0.0"

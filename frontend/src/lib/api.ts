@@ -84,6 +84,8 @@ import type {
   ChatResponse,
   ConversationListResponse,
   MessageListResponse,
+  Reminder,
+  ReminderCreate,
 } from './types';
 
 export async function sendChatMessage(
@@ -116,4 +118,36 @@ export async function getConversationMessages(
   return api.get<MessageListResponse>(
     `/api/${userId}/conversations/${conversationId}/messages?limit=${limit}&offset=${offset}`
   );
+}
+
+// Phase V: Reminder API functions
+
+/**
+ * Create or update a reminder for a task.
+ * If a reminder already exists, it will be replaced.
+ */
+export async function createTaskReminder(
+  taskId: string,
+  data: ReminderCreate
+): Promise<Reminder> {
+  return api.post<Reminder>(`/api/tasks/${taskId}/reminder`, data);
+}
+
+/**
+ * Get the current pending reminder for a task.
+ * Returns null if no reminder exists.
+ */
+export async function getTaskReminder(
+  taskId: string
+): Promise<Reminder | null> {
+  return api.get<Reminder | null>(`/api/tasks/${taskId}/reminder`);
+}
+
+/**
+ * Cancel all pending reminders for a task.
+ */
+export async function deleteTaskReminder(
+  taskId: string
+): Promise<void> {
+  return api.delete<void>(`/api/tasks/${taskId}/reminder`);
 }

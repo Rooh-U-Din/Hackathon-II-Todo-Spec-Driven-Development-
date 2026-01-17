@@ -1,0 +1,6 @@
+apiVersion: v2
+name: audit
+description: Audit Service - Dapr consumer for all task and reminder events
+type: application
+version: 0.1.0
+appVersion: "1.0.0"

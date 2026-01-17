@@ -1,0 +1,93 @@
+# Dapr Runtime Configuration
+# Phase V: Central configuration for Dapr runtime behavior
+# SAFE MODE: New file only, no existing code modified
+
+apiVersion: dapr.io/v1alpha1
+kind: Configuration
+metadata:
+  name: todo-config
+  namespace: default
+spec:
+  # Tracing configuration for observability
+  tracing:
+    samplingRate: "1"
+    zipkin:
+      endpointAddress: "http://zipkin.default.svc.cluster.local:9411/api/v2/spans"
+
+  # Metrics configuration
+  metrics:
+    enabled: true
+    rules:
+      - name: todo-backend
+        labels:
+          - name: method
+            regex:
+              "GET|POST|PUT|DELETE"
+
+  # API access control
+  accessControl:
+    defaultAction: allow
+    trustDomain: "public"
+    policies:
+      - appId: todo-backend
+        defaultAction: allow
+        trustDomain: "public"
+        namespace: "default"
+      - appId: notification-service
+        defaultAction: allow
+        trustDomain: "public"
+        namespace: "default"
+      - appId: recurring-task-service
+        defaultAction: allow
+        trustDomain: "public"
+        namespace: "default"
+      - appId: audit-service
+        defaultAction: allow
+        trustDomain: "public"
+        namespace: "default"
+
+  # Feature flags
+  features:
+    - name: ServiceInvocation
+      enabled: true
+    - name: PubSub
+      enabled: true
+    - name: StateStore
+      enabled: true
+    - name: Bindings
+      enabled: true
+    - name: Actors
+      enabled: false
+    - name: Secrets
+      enabled: true
+
+  # Middleware pipeline
+  httpPipeline:
+    handlers: []
+
+  # App health checks
+  appHealthCheck:
+    probeInterval: "5s"
+    probeTimeout: "500ms"
+    threshold: 3
+---
+# Local development configuration (simplified)
+apiVersion: dapr.io/v1alpha1
+kind: Configuration
+metadata:
+  name: todo-config-local
+  namespace: default
+spec:
+  tracing:
+    samplingRate: "1"
+  metrics:
+    enabled: false
+  features:
+    - name: ServiceInvocation
+      enabled: true
+    - name: PubSub
+      enabled: true
+    - name: StateStore
+      enabled: true
+    - name: Secrets
+      enabled: true

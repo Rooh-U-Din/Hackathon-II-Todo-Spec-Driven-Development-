@@ -1,0 +1,146 @@
+# Cloud-specific Helm values for Phase V
+# Use with: helm install todo ./helm/todo-app -f values-cloud.yaml
+
+# Global settings for cloud deployment
+global:
+  imagePullPolicy: Always  # Always pull from registry
+  nodeEnv: production
+  imageRegistry: ""  # Set via --set global.imageRegistry=<registry>
+
+# Frontend configuration
+frontend:
+  enabled: true
+  replicaCount: 2
+
+  image:
+    repository: todo-frontend
+    tag: v2.0.0
+    pullPolicy: Always
+
+  service:
+    type: LoadBalancer  # External access
+    port: 80
+    targetPort: 3000
+
+  resources:
+    requests:
+      cpu: "200m"
+      memory: "256Mi"
+    limits:
+      cpu: "1000m"
+      memory: "1Gi"
+
+  env:
+    NEXT_PUBLIC_API_URL: ""  # Set to backend LoadBalancer URL
+
+# Backend configuration
+backend:
+  enabled: true
+  replicaCount: 2
+
+  image:
+    repository: todo-backend
+    tag: v2.0.0
+    pullPolicy: Always
+
+  service:
+    type: LoadBalancer  # External access for API
+    port: 80
+    targetPort: 8000
+
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "512Mi"
+    limits:
+      cpu: "2000m"
+      memory: "2Gi"
+
+  config:
+    PYTHONUNBUFFERED: "1"
+    LOG_LEVEL: "INFO"
+    DAPR_HTTP_PORT: "3500"
+    PUBSUB_NAME: "taskpubsub"
+    DAPR_JOBS_ENABLED: "true"
+
+# Dapr configuration for cloud
+dapr:
+  enabled: true
+  pubsub:
+    brokers: "redpanda:9092"  # Override for managed Kafka
+  statestore:
+    secretName: "db-credentials"
+    secretKey: "connection-string"
+
+# Notification service
+notification:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: notification-service
+    tag: v2.0.0
+    pullPolicy: Always
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+
+# Recurring task service
+recurringTask:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: recurring-task-service
+    tag: v2.0.0
+    pullPolicy: Always
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+
+# Audit service
+audit:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: audit-service
+    tag: v2.0.0
+    pullPolicy: Always
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+
+# Redpanda configuration for cloud
+# Set enabled: false if using managed Kafka
+redpanda:
+  enabled: true
+  statefulset:
+    replicas: 3  # Production cluster
+  storage:
+    persistentVolume:
+      enabled: true
+      size: 50Gi
+      storageClass: ""  # Use default storage class
+  resources:
+    cpu:
+      cores: 2
+    memory:
+      container:
+        max: 4Gi
+  external:
+    enabled: false
+  auth:
+    sasl:
+      enabled: false  # Enable for production
+  tls:
+    enabled: false  # Enable for production

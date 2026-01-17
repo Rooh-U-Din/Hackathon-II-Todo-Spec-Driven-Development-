@@ -196,7 +196,50 @@ helm/todo-app/
             └── secret.yaml
 ```
 
+## Phase V: Event-Driven Services (Planned)
+
+Phase V extends the Helm chart with consumer microservices:
+
+### Planned Subcharts
+
+| Service | Purpose | Subscribes To |
+|---------|---------|---------------|
+| notification | Deliver reminders | `reminders` topic |
+| recurring-task | Generate next occurrences | `task-events` topic |
+| audit | Log all activity | `task-events` topic |
+
+### Phase V Chart Structure (Planned)
+
+```
+helm/todo-app/
+├── Chart.yaml              # Updated with new dependencies
+├── values.yaml             # Extended configuration
+├── values-cloud.yaml       # Cloud deployment overrides
+└── charts/
+    ├── frontend/           # Existing
+    ├── backend/            # Existing (extended with Dapr annotations)
+    ├── notification/       # NEW: Notification service
+    ├── recurring-task/     # NEW: Recurring task service
+    ├── audit/              # NEW: Audit service
+    ├── kafka/              # NEW: Redpanda/Kafka
+    └── dapr/               # NEW: Dapr components
+```
+
+### Dapr Integration
+
+Phase V services use Dapr sidecars for:
+- **Pub/Sub**: Event messaging via Redis/Kafka
+- **State Store**: PostgreSQL for distributed state
+- **Secrets**: Kubernetes secrets management
+
+Configuration files in `infra/dapr/components/`:
+- `pubsub.yaml` - Redis/Kafka pub/sub component
+- `statestore.yaml` - PostgreSQL state store
+- `secrets.yaml` - Kubernetes secrets
+- `configuration.yaml` - Dapr runtime config
+
 ## Version
 
 - Chart Version: 0.1.0
 - App Version: 1.0.0
+- Phase V Status: In Progress (47%)

@@ -305,10 +305,69 @@ kubectl get events --sort-by='.lastTimestamp'
 - [Helm Chart README](helm/todo-app/README.md)
 - [AI DevOps Usage](specs/004-k8s-deployment/ai-devops-usage.md)
 
+## Phase V: Event-Driven Architecture (In Progress)
+
+Phase V extends the application with cloud-native event-driven patterns:
+
+### Features (47% Complete)
+- **Background Workers**: In-process event processing (100% complete)
+- **Event Publishing**: Task events via Dapr Pub/Sub
+- **Consumer Services**: Notification, Recurring Task, Audit services
+- **Dapr Integration**: State store, secrets, pub/sub components
+- **CI/CD**: GitHub Actions workflows for build and deployment
+
+### Phase V Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                     Kubernetes Cluster                           │
+│                                                                  │
+│   ┌─────────────┐    ┌─────────────┐    ┌────────────────────┐  │
+│   │  Frontend   │    │   Backend   │    │   Kafka/Redis      │  │
+│   │  (Next.js)  │───▶│  (FastAPI)  │───▶│   (Pub/Sub)        │  │
+│   └─────────────┘    │  + Dapr     │    └─────────┬──────────┘  │
+│                      └─────────────┘              │              │
+│                             │                     │              │
+│         ┌───────────────────┼─────────────────────┤              │
+│         ▼                   ▼                     ▼              │
+│   ┌───────────┐     ┌───────────┐        ┌───────────┐         │
+│   │Notification│     │ Recurring │        │   Audit   │         │
+│   │  Service  │     │   Task    │        │  Service  │         │
+│   └───────────┘     └───────────┘        └───────────┘         │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Phase V File Structure
+
+```
+services/                    # Consumer microservices
+├── notification-service/
+├── recurring-task-service/
+└── audit-service/
+
+infra/dapr/                  # Dapr configuration
+├── components/
+│   ├── pubsub.yaml          # Redis/Kafka pub/sub
+│   ├── statestore.yaml      # PostgreSQL state
+│   └── secrets.yaml         # Kubernetes secrets
+└── configuration.yaml       # Dapr runtime config
+
+.github/workflows/           # CI/CD pipelines
+├── ci.yaml                  # Lint, test, build
+└── deploy-cloud.yaml        # Cloud deployment
+```
+
+### Phase V Documentation
+- [Feature Specification](specs/005-cloud-event-driven/spec.md)
+- [Implementation Plan](specs/005-cloud-event-driven/plan.md)
+- [Task List](specs/005-cloud-event-driven/tasks.md)
+- [Architecture Review](specs/005-cloud-event-driven/architecture-review.md)
+
 ## License
 
 This project was created for hackathon demonstration purposes.
 
 ---
 
-**Version**: 1.1.0 | **Last Updated**: 2026-01-06
+**Version**: 1.2.0 | **Last Updated**: 2026-01-15

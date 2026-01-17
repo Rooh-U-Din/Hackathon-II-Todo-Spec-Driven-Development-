@@ -96,3 +96,89 @@ backend:
     DATABASE_URL: ""
     GEMINI_API_KEY: ""
     SECRET_KEY: ""
+
+# Phase V: Event-Driven Architecture Configuration
+
+# Dapr settings
+dapr:
+  enabled: true
+  pubsub:
+    brokers: "redpanda:9092"
+  statestore:
+    secretName: "db-credentials"
+    secretKey: "connection-string"
+
+# Notification service (Dapr consumer)
+notification:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: todo-app/notification-service
+    tag: latest
+    pullPolicy: IfNotPresent
+  dapr:
+    enabled: true
+    appId: notification-service
+    appPort: 5001
+  env:
+    DAPR_HTTP_PORT: "3500"
+    PUBSUB_NAME: "taskpubsub"
+    BACKEND_URL: "http://todo-backend:80"
+
+# Recurring task service (Dapr consumer)
+recurringTask:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: todo-app/recurring-task-service
+    tag: latest
+    pullPolicy: IfNotPresent
+  dapr:
+    enabled: true
+    appId: recurring-task-service
+    appPort: 5002
+  env:
+    DAPR_HTTP_PORT: "3500"
+    PUBSUB_NAME: "taskpubsub"
+    BACKEND_URL: "http://todo-backend:80"
+
+# Audit service (Dapr consumer)
+audit:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: todo-app/audit-service
+    tag: latest
+    pullPolicy: IfNotPresent
+  dapr:
+    enabled: true
+    appId: audit-service
+    appPort: 5003
+  env:
+    DAPR_HTTP_PORT: "3500"
+    PUBSUB_NAME: "taskpubsub"
+
+# Redpanda (Kafka-compatible message broker)
+redpanda:
+  enabled: true
+  statefulset:
+    replicas: 1
+  storage:
+    persistentVolume:
+      enabled: false
+  resources:
+    cpu:
+      cores: 1
+    memory:
+      container:
+        max: 2Gi
+  external:
+    enabled: false
+  auth:
+    sasl:
+      enabled: false
+  tls:
+    enabled: false
+  listeners:
+    kafka:
+      port: 9092

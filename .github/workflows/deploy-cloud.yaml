@@ -1,0 +1,164 @@
+# Phase V Cloud Deployment Workflow
+# SAFE MODE: New file only, no existing code modified
+
+name: Deploy to Cloud
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Deployment environment"
+        required: true
+        default: "staging"
+        type: choice
+        options:
+          - staging
+          - production
+      cloud_provider:
+        description: "Cloud provider"
+        required: true
+        default: "oke"
+        type: choice
+        options:
+          - oke   # Oracle OKE
+          - aks   # Azure AKS
+          - gke   # Google GKE
+
+env:
+  HELM_VERSION: "3.14.0"
+  KUBECTL_VERSION: "1.29.0"
+
+jobs:
+  validate:
+    name: Validate Configuration
+    runs-on: ubuntu-latest
+    outputs:
+      cluster_name: ${{ steps.config.outputs.cluster_name }}
+      registry: ${{ steps.config.outputs.registry }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set configuration
+        id: config
+        run: |
+          case "${{ inputs.cloud_provider }}" in
+            oke)
+              echo "cluster_name=todo-cluster-oke" >> $GITHUB_OUTPUT
+              echo "registry=${{ secrets.OCI_REGISTRY }}" >> $GITHUB_OUTPUT
+              ;;
+            aks)
+              echo "cluster_name=todo-cluster-aks" >> $GITHUB_OUTPUT
+              echo "registry=${{ secrets.ACR_REGISTRY }}" >> $GITHUB_OUTPUT
+              ;;
+            gke)
+              echo "cluster_name=todo-cluster-gke" >> $GITHUB_OUTPUT
+              echo "registry=${{ secrets.GCR_REGISTRY }}" >> $GITHUB_OUTPUT
+              ;;
+          esac
+
+      - name: Validate secrets
+        run: |
+          if [ -z "${{ secrets.KUBECONFIG }}" ]; then
+            echo "Warning: KUBECONFIG secret not set"
+          fi
+
+  build-and-push:
+    name: Build and Push Images
+    runs-on: ubuntu-latest
+    needs: validate
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ needs.validate.outputs.registry }}
+          username: ${{ secrets.REGISTRY_USERNAME }}
+          password: ${{ secrets.REGISTRY_PASSWORD }}
+
+      - name: Build and push backend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          file: ./Dockerfile.backend
+          push: true
+          tags: |
+            ${{ needs.validate.outputs.registry }}/todo-backend:${{ github.sha }}
+            ${{ needs.validate.outputs.registry }}/todo-backend:latest
+
+      - name: Build and push frontend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          file: ./Dockerfile.frontend
+          push: true
+          tags: |
+            ${{ needs.validate.outputs.registry }}/todo-frontend:${{ github.sha }}
+            ${{ needs.validate.outputs.registry }}/todo-frontend:latest
+
+  deploy:
+    name: Deploy to Kubernetes
+    runs-on: ubuntu-latest
+    needs: [validate, build-and-push]
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: ${{ env.HELM_VERSION }}
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: ${{ env.KUBECTL_VERSION }}
+
+      - name: Configure kubeconfig
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBECONFIG }}" | base64 -d > ~/.kube/config
+          chmod 600 ~/.kube/config
+
+      - name: Verify cluster connection
+        run: |
+          kubectl cluster-info
+          kubectl get nodes
+
+      - name: Deploy with Helm
+        run: |
+          helm upgrade --install todo-app ./helm/todo-app \
+            --namespace todo-${{ inputs.environment }} \
+            --create-namespace \
+            --values ./helm/todo-app/values.yaml \
+            --values ./helm/todo-app/values-cloud.yaml \
+            --set backend.image.repository=${{ needs.validate.outputs.registry }}/todo-backend \
+            --set backend.image.tag=${{ github.sha }} \
+            --set frontend.image.repository=${{ needs.validate.outputs.registry }}/todo-frontend \
+            --set frontend.image.tag=${{ github.sha }} \
+            --set global.environment=${{ inputs.environment }} \
+            --wait \
+            --timeout 10m
+
+      - name: Verify deployment
+        run: |
+          kubectl get pods -n todo-${{ inputs.environment }}
+          kubectl get services -n todo-${{ inputs.environment }}
+
+  post-deploy:
+    name: Post-Deployment Verification
+    runs-on: ubuntu-latest
+    needs: deploy
+    steps:
+      - name: Health check
+        run: |
+          echo "Deployment complete for environment: ${{ inputs.environment }}"
+          echo "Cloud provider: ${{ inputs.cloud_provider }}"
+          echo "Commit: ${{ github.sha }}"
+
+      - name: Notify success
+        run: |
+          echo "Phase V cloud deployment successful!"

@@ -2,10 +2,10 @@ apiVersion: v2
 name: todo-app
 description: Todo AI Chatbot Application - Helm Chart for Kubernetes Deployment
 type: application
-version: 0.1.0
-appVersion: "1.0.0"
+version: 0.2.0
+appVersion: "2.0.0"
 
-# Dependencies - subcharts for frontend and backend
+# Dependencies - subcharts for frontend, backend, and Phase V consumer services
 dependencies:
   - name: frontend
     version: 0.1.0
@@ -15,6 +15,24 @@ dependencies:
     version: 0.1.0
     repository: file://charts/backend
     condition: backend.enabled
+  # Phase V: Event-driven consumer services
+  - name: notification
+    version: 0.1.0
+    repository: file://charts/notification
+    condition: notification.enabled
+  - name: recurring-task
+    version: 0.1.0
+    repository: file://charts/recurring-task
+    condition: recurringTask.enabled
+  - name: audit
+    version: 0.1.0
+    repository: file://charts/audit
+    condition: audit.enabled
+  # Redpanda (Kafka-compatible message broker)
+  - name: redpanda
+    version: 5.9.4
+    repository: https://charts.redpanda.com
+    condition: redpanda.enabled
 
 keywords:
   - todo
@@ -23,9 +41,12 @@ keywords:
   - fastapi
   - nextjs
   - kubernetes
+  - event-driven
+  - dapr
+  - kafka
 
 maintainers:
-  - name: Phase IV Developer
+  - name: Phase V Developer
     email: developer@example.com
 
 home: https://github.com/example/todo-app
