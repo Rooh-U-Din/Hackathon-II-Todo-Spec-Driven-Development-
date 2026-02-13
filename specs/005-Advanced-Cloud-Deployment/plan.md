@@ -17,7 +17,7 @@ This phase adds application features AND infrastructure, unlike Phase IV which w
 ## Technical Context
 
 **Language/Version**: Python 3.13 (backend services), Node.js 20 (frontend)
-**Primary Dependencies**: Dapr 1.14+, Kafka (Redpanda), Helm 3.x, GitHub Actions
+**Primary Dependencies**: Dapr 1.14+, Redpanda (Kafka-compatible broker), Helm 3.x, GitHub Actions
 **Storage**: Neon PostgreSQL (extended schema), Dapr State Store
 **Testing**: pytest (unit), manual validation (integration), Helm lint (infra)
 **Target Platform**: Minikube (local), Oracle OKE / Azure AKS / Google GKE (cloud)

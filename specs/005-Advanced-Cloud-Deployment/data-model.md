@@ -100,6 +100,12 @@ This document defines the data model extensions for Phase V. All changes are add
 - `due_at` must be in the future at creation time
 - `parent_task_id` creates self-referential relationship for recurring chains
 
+**Timezone Handling**:
+- All datetime fields (`due_at`, `next_occurrence_at`, `created_at`, `updated_at`) stored in UTC
+- Frontend converts to user's local timezone for display and input
+- Backend accepts ISO 8601 with timezone offset, converts to UTC at API boundary
+- Recurring task calculations use UTC to avoid DST issues
+
 **State Transitions**:
 ```
 pending → completed (is_completed = True)
@@ -176,6 +182,12 @@ pending ──▶ sent (notification delivered successfully)
 - `remind_at` must be in the future at creation
 - `remind_at` should be before task `due_at` (warning if after)
 - One active reminder per task (cancel existing before creating new)
+
+**Timezone Handling**:
+- All datetime fields (`remind_at`, `created_at`, `sent_at`) stored in UTC
+- Frontend converts to user's local timezone for display and input
+- Backend accepts ISO 8601 with timezone offset, converts to UTC at API boundary
+- Dapr Jobs API schedules use UTC timestamps to avoid DST issues
 
 ---
 
