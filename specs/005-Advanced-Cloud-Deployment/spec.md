@@ -18,7 +18,7 @@ Transform the Todo AI Chatbot into an event-driven microservices system with rec
 ### In-Scope
 
 - Advanced task features: recurring tasks, due dates, reminders, priorities, tags
-- Event-driven communication via message broker abstracted through infrastructure layer
+- Event-driven communication via Dapr Pub/Sub to Kafka-compatible broker
 - Separate consumer services for notifications, recurring task generation, audit logging
 - Local Kubernetes deployment with event streaming
 - Cloud Kubernetes deployment (one provider)
@@ -87,7 +87,7 @@ As a user, I want to assign priorities (low, medium, high) and tags to tasks, so
 
 ### User Story 4 - System Publishes Task Events Asynchronously (Priority: P4)
 
-As a system operator, I want all task operations to publish events to a message broker, so that downstream services can react to changes without tight coupling.
+As a system operator, I want all task operations to publish events to Kafka via Dapr, so that downstream services can react to changes without tight coupling.
 
 **Why this priority**: Event-driven architecture is foundational for scalability but requires the core features (P1-P3) to be working first.
 
@@ -98,7 +98,7 @@ As a system operator, I want all task operations to publish events to a message 
 1. **Given** a task is created, **When** the operation completes, **Then** a "task.created" event is published with task details
 2. **Given** a task is completed, **When** the operation completes, **Then** a "task.completed" event is published triggering recurring task generation
 3. **Given** a task is updated, **When** the operation completes, **Then** a "task.updated" event is published for real-time sync
-4. **Given** the message broker is temporarily unavailable, **When** a task operation occurs, **Then** the operation succeeds and event is queued for retry
+4. **Given** Kafka is temporarily unavailable, **When** a task operation occurs, **Then** the operation succeeds and event is queued for retry
 
 ---
 
@@ -123,7 +123,7 @@ As a DevOps engineer, I want to deploy the complete system to a cloud Kubernetes
 
 - **EC-01**: When a recurring task is deleted, all future scheduled occurrences must be cancelled
 - **EC-02**: When reminder time has already passed at task creation, reminder is scheduled for next valid time or skipped with notification
-- **EC-03**: When message broker is unavailable for extended period (>5 minutes), events are persisted locally and replayed on reconnection
+- **EC-03**: When Kafka is unavailable for extended period (>5 minutes), events are persisted locally and replayed on reconnection
 - **EC-04**: When cloud cluster resources are insufficient, deployment fails gracefully with clear error message
 - **EC-05**: When user completes a recurring task multiple times rapidly, only one next occurrence is generated (idempotency)
 - **EC-06**: When timezone differs between server and user, due dates and reminders respect user's timezone
@@ -141,12 +141,12 @@ As a DevOps engineer, I want to deploy the complete system to a cloud Kubernetes
 - **FR-07**: Tasks MUST support multiple text-based tags
 - **FR-08**: Users MUST be able to filter tasks by status, priority, tags, and due date range
 - **FR-09**: Users MUST be able to sort tasks by created date, due date, or priority
-- **FR-10**: Search MUST support full-text search across task title and description
+- **FR-10**: Search MUST support full-text search across task title and description, returning results in under 1 second for up to 10,000 tasks
 
 ### Functional Requirements - Event-Driven Architecture
 
 - **FR-11**: Backend MUST publish events for all task CRUD operations
-- **FR-12**: Events MUST be published via infrastructure abstraction layer (not direct broker client)
+- **FR-12**: Events MUST be published via Dapr Pub/Sub abstraction (not direct broker client)
 - **FR-13**: Notification service MUST consume reminder events and deliver notifications
 - **FR-14**: Recurring task service MUST consume completion events and generate next occurrences
 - **FR-15**: Audit service MUST consume all task events and maintain activity log
@@ -154,16 +154,16 @@ As a DevOps engineer, I want to deploy the complete system to a cloud Kubernetes
 
 ### Functional Requirements - Deployment
 
-- **FR-17**: System MUST deploy to local Kubernetes with message broker and infrastructure layer
+- **FR-17**: System MUST deploy to local Kubernetes with Kafka and Dapr
 - **FR-18**: System MUST deploy to one cloud Kubernetes provider
 - **FR-19**: Existing Helm charts MUST be extended (not replaced) for new services
 - **FR-20**: CI/CD pipeline MUST automate build, test, and deployment stages
 
 ### Non-Functional Requirements
 
-- **NFR-01**: Events MUST be delivered at least once (at-least-once semantics)
+- **NFR-01**: Events MUST be delivered at least once with automatic retry (max 3 attempts with exponential backoff) and dead-letter queue for failed messages
 - **NFR-02**: Reminders MUST be delivered within 1 minute of scheduled time under normal conditions
-- **NFR-03**: System MUST remain functional if event broker is temporarily unavailable (graceful degradation)
+- **NFR-03**: System MUST remain functional if Kafka is temporarily unavailable (graceful degradation)
 - **NFR-04**: All services MUST support horizontal scaling independently
 - **NFR-05**: Event consumers MUST be idempotent to handle duplicate deliveries
 - **NFR-06**: Cloud deployment MUST complete in under 15 minutes via CI/CD
@@ -199,8 +199,8 @@ As a DevOps engineer, I want to deploy the complete system to a cloud Kubernetes
 - **AC-01**: Create recurring task and verify next occurrence generated on completion
 - **AC-02**: Set reminder and verify notification received at scheduled time
 - **AC-03**: Assign priorities and tags, then filter and sort tasks correctly
-- **AC-04**: Verify task events appear in message topics with correct payloads
-- **AC-05**: Deploy to local Kubernetes with infrastructure layer and message broker running
+- **AC-04**: Verify task events appear in Kafka topics with correct payloads
+- **AC-05**: Deploy to local Kubernetes with Dapr and Kafka running
 - **AC-06**: Deploy to cloud Kubernetes and access application publicly
 - **AC-07**: CI/CD pipeline successfully builds, tests, and deploys on push
 - **AC-08**: All Phase IV features (chat, task CRUD, scaling) work correctly
@@ -210,7 +210,7 @@ As a DevOps engineer, I want to deploy the complete system to a cloud Kubernetes
 - Minikube setup from Phase IV is available for local testing
 - Cloud Kubernetes account is provisioned (Oracle OKE, Azure AKS, or Google GKE)
 - Message broker can run locally via container (Redpanda/Kafka)
-- Infrastructure abstraction layer is available as container images
+- Dapr is available as container images for sidecar injection
 - Users have email addresses for notification delivery (from Phase II auth)
 - Web browser supports modern notification APIs (fallback to email)
 - Phase IV Helm charts are compatible with extension (additive changes only)
@@ -228,7 +228,7 @@ As a DevOps engineer, I want to deploy the complete system to a cloud Kubernetes
 
 - **R-01**: Message broker complexity may extend local development setup time
 - **R-02**: Cloud Kubernetes costs may exceed free tier limits (mitigate: use Oracle OKE free tier)
-- **R-03**: Infrastructure abstraction layer may have learning curve (mitigate: comprehensive quickstart guide)
+- **R-03**: Dapr may have learning curve (mitigate: comprehensive quickstart guide)
 - **R-04**: CI/CD pipeline secrets management requires careful handling
 - **R-05**: Event ordering guarantees may require partition strategy design
 
@@ -237,9 +237,9 @@ As a DevOps engineer, I want to deploy the complete system to a cloud Kubernetes
 - [ ] Recurring task creation and automatic regeneration works end-to-end
 - [ ] Due dates display correctly and reminders trigger on schedule
 - [ ] Priority and tag filtering/sorting works as expected
-- [ ] Events appear in message broker topics after task operations
+- [ ] Events appear in Kafka topics after task operations
 - [ ] Consumer services react to events correctly (notifications, recurring generation, audit)
-- [ ] Local Kubernetes deployment includes all services with infrastructure layer
+- [ ] Local Kubernetes deployment includes all services with Dapr
 - [ ] Cloud Kubernetes deployment accessible via public URL
 - [ ] CI/CD pipeline passes and deploys successfully
 - [ ] All Phase IV tests and functionality remain working
