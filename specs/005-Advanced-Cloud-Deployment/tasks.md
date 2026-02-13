@@ -3,7 +3,7 @@
 **Input**: Design documents from `specs/005-cloud-event-driven/`
 **Prerequisites**: plan.md, spec.md, research.md, data-model.md, contracts/
 
-**Tests**: Tests are NOT explicitly requested in the specification. Manual validation via Dapr Dashboard, kubectl, and browser is the testing approach.
+**Testing Strategy**: Manual validation via Dapr Dashboard, kubectl, and browser is the primary testing approach per spec requirements. Unit tests with pytest are optional and not blocking for Phase V completion.
 
 **Organization**: Tasks are grouped by milestone and user story to enable independent implementation and testing.
 
