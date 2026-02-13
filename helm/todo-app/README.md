@@ -82,6 +82,40 @@ minikube service todo-app-backend --url
 
 ## Configuration
 
+### Observability & Monitoring
+
+All services expose health and metrics endpoints for monitoring:
+
+| Service | Health Endpoint | Metrics Endpoint | Port |
+|---------|----------------|------------------|------|
+| Backend | `GET /health` | `GET /metrics` | 8000 |
+| Frontend | `GET /api/health` | N/A | 3000 |
+| Notification Service | `GET /health` | `GET /metrics` | 5001 |
+| Recurring Task Service | `GET /health` | `GET /metrics` | 5002 |
+| Audit Service | `GET /health` | `GET /metrics` | 5003 |
+
+**Metrics Format**: Prometheus exposition format
+
+**Key Metrics**:
+- `backend_requests_total` - Total HTTP requests (labels: method, endpoint, status)
+- `backend_request_duration_seconds` - Request duration histogram
+- `notification_service_notifications_sent_total` - Notifications sent (labels: channel, status)
+- `notification_service_events_processed_total` - Events processed (labels: event_type, status)
+- `recurring_task_service_tasks_generated_total` - Recurring tasks generated (labels: recurrence_type)
+- `recurring_task_service_events_processed_total` - Events processed (labels: event_type, status)
+- `audit_service_logs_created_total` - Audit logs created (labels: action, entity_type)
+- `audit_service_events_processed_total` - Events processed (labels: event_type, status)
+
+**Accessing Metrics**:
+```bash
+# Backend metrics
+curl http://<minikube-ip>:30081/metrics
+
+# Consumer service metrics (via port-forward)
+kubectl port-forward svc/notification-service 5001:5001
+curl http://localhost:5001/metrics
+```
+
 ### values.yaml Options
 
 | Parameter | Description | Default |
