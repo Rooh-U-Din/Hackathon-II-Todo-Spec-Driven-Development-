@@ -31,7 +31,7 @@ frontend:
       memory: "1Gi"
 
   env:
-    NEXT_PUBLIC_API_URL: ""  # Set to backend LoadBalancer URL
+    NEXT_PUBLIC_API_URL: "https://roohdin-hackathon2.hf.space"  # Hugging Face backend URL
 
 # Backend configuration
 backend:

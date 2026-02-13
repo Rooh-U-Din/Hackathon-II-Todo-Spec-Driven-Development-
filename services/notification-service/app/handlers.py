@@ -14,7 +14,7 @@ from app.notifier import send_notification, NotificationChannel
 logger = logging.getLogger(__name__)
 
 # Backend URL for status updates
-BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000")
+BACKEND_URL = os.getenv("BACKEND_URL", "https://roohdin-hackathon2.hf.space")
 
 
 async def handle_reminder_due_event(event_data: dict[str, Any]) -> bool:
