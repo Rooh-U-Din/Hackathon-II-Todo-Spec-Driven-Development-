@@ -408,6 +408,48 @@ Phase V files extend existing structure:
 
 ---
 
+## Phase 17.5: Observability & Monitoring (T071M)
+
+**Purpose**: Implement monitoring and metrics exposure per NFR-07
+
+### Health Endpoints
+
+- [ ] T071M-a Add /health endpoint to backend if not present in backend/app/main.py
+- [ ] T071M-b Add /health endpoint to notification-service in services/notification-service/app/main.py
+- [ ] T071M-c Add /health endpoint to recurring-task-service in services/recurring-task-service/app/main.py
+- [ ] T071M-d Add /health endpoint to audit-service in services/audit-service/app/main.py
+
+### Metrics Endpoints
+
+- [ ] T071M-e Add /metrics endpoint to backend with event publish counts in backend/app/main.py
+- [ ] T071M-f Add /metrics endpoint to notification-service with delivery counts in services/notification-service/app/main.py
+- [ ] T071M-g Add /metrics endpoint to recurring-task-service with generation counts in services/recurring-task-service/app/main.py
+- [ ] T071M-h Add /metrics endpoint to audit-service with log counts in services/audit-service/app/main.py
+
+### Metrics Collection
+
+- [ ] T071M-i Add prometheus-client dependency to backend/pyproject.toml
+- [ ] T071M-j Add prometheus-client dependency to all consumer service pyproject.toml files
+- [ ] T071M-k Implement event processing metrics (counter, histogram) in backend/app/events/publisher.py
+- [ ] T071M-l Implement notification delivery metrics in services/notification-service/app/handlers.py
+- [ ] T071M-m Implement recurring task generation metrics in services/recurring-task-service/app/handlers.py
+- [ ] T071M-n Implement audit log metrics in services/audit-service/app/handlers.py
+
+### Helm Integration
+
+- [ ] T071M-o Add ServiceMonitor CRD for Prometheus scraping in helm/todo-app/templates/servicemonitor.yaml (optional)
+- [ ] T071M-p Document metrics endpoints in helm/todo-app/README.md
+
+### Validation
+
+- [ ] T071M-q Test /health endpoints return 200 OK for all services
+- [ ] T071M-r Test /metrics endpoints expose Prometheus format metrics
+- [ ] T071M-s Verify event processing metrics increment correctly
+
+**Checkpoint**: T071M complete - NFR-07 satisfied; all services expose health and metrics (AC-07 enhanced)
+
+---
+
 ## Phase 18: Validation & Documentation (T072)
 
 **Purpose**: Final validation and documentation
@@ -477,6 +519,9 @@ Phase 11: US2      Phase 12: US3     Phase 13: US4
                 Phase 17: Cloud Deployment (T071)
                        │
                        ▼
+           Phase 17.5: Monitoring (T071M) ← NEW
+                       │
+                       ▼
                 Phase 18: Validation (T072)
 ```
 
@@ -492,7 +537,8 @@ Phase 11: US2      Phase 12: US3     Phase 13: US4
 - **T069W (Workers)**: Depends on T067-T069 - provides in-process alternative to microservices ✅ COMPLETE
 - **T070 (Local K8s)**: Depends on T068, T069, T069W - needs all services
 - **T071 (Cloud)**: Depends on T070 - needs local validation first
-- **T072 (Validation)**: Depends on T071 - final validation
+- **T071M (Monitoring)**: Depends on T071 - adds observability to cloud deployment
+- **T072 (Validation)**: Depends on T071M - final validation with monitoring
 
 ### Parallel Opportunities
 
@@ -572,8 +618,9 @@ Execute phases sequentially:
 | **15.5. Workers** | **27** | **27** | **0** | **-** |
 | 16. Local K8s | 18 | 1 | 17 | US5 |
 | 17. Cloud | 13 | 0 | 13 | US5 |
+| **17.5. Monitoring** | **19** | **0** | **19** | **NFR-07** |
 | 18. Validation | 15 | 0 | 15 | - |
-| **Total** | **181** | **85** | **96** | - |
+| **Total** | **200** | **85** | **115** | - |
 
 ---
 
