@@ -10,6 +10,14 @@ from app.generator import generate_next_occurrence, RecurrenceType
 
 logger = logging.getLogger(__name__)
 
+# Import metrics from main module
+try:
+    from app.main import TASKS_GENERATED, EVENTS_PROCESSED
+except ImportError:
+    # Fallback if metrics not available (for testing)
+    TASKS_GENERATED = None
+    EVENTS_PROCESSED = None
+
 
 async def handle_task_completed(event_data: dict[str, Any]) -> bool:
     """Handle a task.completed event.
@@ -61,6 +69,12 @@ async def handle_task_completed(event_data: dict[str, Any]) -> bool:
         )
 
         if next_task:
+            # Track metrics
+            if TASKS_GENERATED:
+                TASKS_GENERATED.labels(
+                    recurrence_type=recurrence_type.value
+                ).inc()
+
             logger.info(
                 f"Generated next occurrence for task {task_id}",
                 extra={

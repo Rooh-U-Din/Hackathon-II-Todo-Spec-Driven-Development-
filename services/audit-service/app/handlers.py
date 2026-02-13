@@ -10,6 +10,14 @@ from app.logger import log_event, AuditAction
 
 logger = logging.getLogger(__name__)
 
+# Import metrics from main module
+try:
+    from app.main import AUDIT_LOGS_CREATED, EVENTS_PROCESSED
+except ImportError:
+    # Fallback if metrics not available (for testing)
+    AUDIT_LOGS_CREATED = None
+    EVENTS_PROCESSED = None
+
 # Map event types to audit actions
 EVENT_TYPE_TO_ACTION = {
     "task.created": AuditAction.TASK_CREATED,

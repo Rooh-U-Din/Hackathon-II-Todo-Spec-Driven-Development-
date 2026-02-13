@@ -16,6 +16,14 @@ logger = logging.getLogger(__name__)
 # Backend URL for status updates
 BACKEND_URL = os.getenv("BACKEND_URL", "https://roohdin-hackathon2.hf.space")
 
+# Import metrics from main module
+try:
+    from app.main import NOTIFICATIONS_SENT, EVENTS_PROCESSED
+except ImportError:
+    # Fallback if metrics not available (for testing)
+    NOTIFICATIONS_SENT = None
+    EVENTS_PROCESSED = None
+
 
 async def handle_reminder_due_event(event_data: dict[str, Any]) -> bool:
     """Handle reminder.due events from Dapr Jobs.
@@ -62,6 +70,13 @@ async def handle_reminder_due_event(event_data: dict[str, Any]) -> bool:
                 "trigger": "dapr_jobs",
             },
         )
+
+        # Track metrics
+        if NOTIFICATIONS_SENT:
+            NOTIFICATIONS_SENT.labels(
+                channel=NotificationChannel.IN_APP.value,
+                status="success" if result else "failed"
+            ).inc()
 
         # Update reminder status in backend
         await _update_reminder_status(
