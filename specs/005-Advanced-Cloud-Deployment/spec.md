@@ -145,8 +145,7 @@ As a DevOps engineer, I want to deploy the complete system to a cloud Kubernetes
 
 ### Functional Requirements - Event-Driven Architecture
 
-- **FR-11**: Backend MUST publish events for all task CRUD operations
-- **FR-12**: Events MUST be published via Dapr Pub/Sub abstraction (not direct broker client)
+- **FR-11**: Backend MUST publish events for all task CRUD operations via Dapr Pub/Sub (not direct broker client)
 - **FR-13**: Notification service MUST consume reminder events and deliver notifications
 - **FR-14**: Recurring task service MUST consume completion events and generate next occurrences
 - **FR-15**: Audit service MUST consume all task events and maintain activity log
