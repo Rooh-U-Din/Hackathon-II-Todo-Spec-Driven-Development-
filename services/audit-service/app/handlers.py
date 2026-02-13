@@ -84,6 +84,13 @@ async def handle_any_event(
             details=details,
         )
 
+        # Track metrics
+        if result and AUDIT_LOGS_CREATED:
+            AUDIT_LOGS_CREATED.labels(
+                action=action.value,
+                entity_type=entity_type
+            ).inc()
+
         if result:
             logger.info(
                 f"Audit logged: {action.value}",
