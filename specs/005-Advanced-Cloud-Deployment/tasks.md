@@ -608,19 +608,19 @@ Execute phases sequentially:
 
 | Phase | Tasks | Completed | Remaining | Story |
 |-------|-------|-----------|-----------|-------|
-| 9. Architecture | 4 | 3 | 1 | - |
-| 10. US1 Recurring | 13 | 10 | 3 | US1 |
-| 11. US2 Reminders | 16 | 11 | 5 | US2 |
-| 12. US3 Priorities | 24 | 16 | 8 | US3 |
-| 13. US4 Events | 18 | 13 | 5 | US4 |
-| 14. Consumers | 22 | 2 | 20 | US4 |
-| 15. Dapr Jobs | 11 | 2 | 9 | US2 |
+| 9. Architecture | 4 | 4 | 0 | - |
+| 10. US1 Recurring | 13 | 13 | 0 | US1 |
+| 11. US2 Reminders | 16 | 16 | 0 | US2 |
+| 12. US3 Priorities | 24 | 24 | 0 | US3 |
+| 13. US4 Events | 18 | 18 | 0 | US4 |
+| 14. Consumers | 22 | 22 | 0 | US4 |
+| 15. Dapr Jobs | 11 | 11 | 0 | US2 |
 | **15.5. Workers** | **27** | **27** | **0** | **-** |
-| 16. Local K8s | 18 | 1 | 17 | US5 |
-| 17. Cloud | 13 | 0 | 13 | US5 |
+| 16. Local K8s | 18 | 18 | 0 | US5 |
+| 17. Cloud | 13 | 13 | 0 | US5 |
 | **17.5. Monitoring** | **19** | **16** | **3** | **NFR-07** |
-| 18. Validation | 15 | 0 | 15 | - |
-| **Total** | **200** | **101** | **99** | - |
+| 18. Validation | 15 | 15 | 0 | - |
+| **Total** | **200** | **197** | **3** | - |
 
 ---
 
