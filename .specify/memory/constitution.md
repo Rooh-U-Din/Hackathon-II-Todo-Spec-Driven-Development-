@@ -1,34 +1,37 @@
 <!--
   Sync Impact Report
   ==================
-  Version change: 1.2.0 → 1.3.0
-  Bump rationale: MINOR - Added Phase IV scope definition for Local Kubernetes Deployment (new phase gate extension)
+  Version change: 1.3.0 → 1.4.0
+  Bump rationale: MINOR - Added Phase V scope definition for Advanced Cloud & Event-Driven Architecture (new phase gate extension)
 
   Modified principles:
-  - None - all existing Phase I, II, III principles preserved
+  - None - all existing Phase I, II, III, IV principles preserved
+  - Updated references throughout to include Phase V
 
   Added sections:
-  - "Included Scope (Phase IV)" under Scope Definition
-  - Phase IV technology stack table
-  - Phase IV deliverables specification
-  - Phase IV transition gate in Phase Gate section
-  - Updated "Explicitly Excluded Scope" to reflect Phase IV changes
+  - "Included Scope (Phase V)" under Scope Definition
+  - Phase V technology stack table (Dapr, Kafka/Redpanda, consumer microservices)
+  - Phase V deliverables specification (extended app, event infrastructure, cloud deployment)
+  - Phase V transition gate in Phase Gate section
+  - Updated "Explicitly Excluded Scope" to reflect Phase V changes (cloud deployment now included)
 
   Removed sections:
   - None
 
   Templates requiring updates:
-  - .specify/templates/plan-template.md ✅ (no conflicts; Phase IV uses infrastructure focus, compatible structure)
-  - .specify/templates/spec-template.md ✅ (no conflicts; infrastructure specs follow same pattern)
-  - .specify/templates/tasks-template.md ✅ (structure compatible; infrastructure tasks follow same phases)
+  - .specify/templates/plan-template.md ✅ (no conflicts; Phase V follows same structure)
+  - .specify/templates/spec-template.md ✅ (no conflicts; event-driven specs follow same pattern)
+  - .specify/templates/tasks-template.md ✅ (structure compatible; Phase V tasks follow same phases)
 
-  Follow-up TODOs: None
+  Follow-up TODOs:
+  - Add tasks for NFR-07 monitoring requirements (health endpoints, metrics exposure)
+  - Clarify "infrastructure abstraction layer" → "Dapr" in spec.md for consistency
 -->
 
 # Todo Application Constitution
 
 **Document Status**: Authoritative / Binding
-**Applies To**: Phase I (core), Phase II, Phase III, and Phase IV (extended scope)
+**Applies To**: Phase I (core), Phase II, Phase III, Phase IV, and Phase V (extended scope)
 **Execution Agent**: Claude Code (AI Engineer)
 **Authoring Authority**: Human Architect (Specs Only)
 **Project Category**: Hobby
@@ -86,7 +89,7 @@ Claude Code MUST NOT:
 - No file I/O (except specification reads during development)
 - No asynchronous programming
 
-**Phase II, Phase III, and Phase IV**: External dependencies are permitted as defined in Phase-specific scope.
+**Phase II, Phase III, Phase IV, and Phase V**: External dependencies are permitted as defined in Phase-specific scope.
 
 ### V. Data Lifetime
 
@@ -95,7 +98,7 @@ Claude Code MUST NOT:
 - All data SHALL be destroyed upon program termination
 - Persistence of any form is strictly forbidden
 
-**Phase II, Phase III, and Phase IV:**
+**Phase II, Phase III, Phase IV, and Phase V:**
 - Database persistence is REQUIRED via Neon Serverless PostgreSQL
 - All data operations MUST go through the defined ORM (SQLModel)
 
@@ -181,6 +184,11 @@ Direct code modification is strictly forbidden.
 - Functionally complete (AI chatbot operational)
 - All MCP tools working correctly
 - Frontend and backend integrated and stable
+
+**Transition to Phase V** is permitted only after Phase IV is:
+- Functionally complete (Kubernetes deployment operational)
+- All services running on Minikube
+- Helm charts validated and working
 
 ## Scope Definition
 
@@ -338,12 +346,103 @@ Direct code modification is strictly forbidden.
 - AI tools are actively used for DevOps tasks
 - Deployment can be reproduced from README
 
+### Included Scope (Phase V)
+
+⚠️ **Rule of Preservation:** All Phase I-IV specifications, architecture, code, and behavior MUST remain unchanged. Phase V extends Phase IV with advanced features and cloud deployment.
+
+**Objective:** Transform the Todo AI Chatbot into a production-grade, event-driven microservices system with advanced task features (recurring tasks, reminders, priorities, tags) and cloud Kubernetes deployment capabilities.
+
+**Development Philosophy:** Continue Spec-Driven Development with event-driven architecture patterns. All new features must be backward compatible with Phase IV.
+
+**Scope Constraints:**
+- Extends Phase IV with new application features AND cloud infrastructure
+- All Phase IV functionality must remain intact (NFR-08)
+- Event-driven communication via Dapr Pub/Sub abstraction
+- Consumer microservices for notifications, recurring tasks, and audit logging
+- Local and cloud Kubernetes deployment support
+
+**Phase V Technology Stack:**
+
+| Layer | Technology | Notes |
+|-------|------------|-------|
+| Backend Extensions | Python 3.13 + FastAPI | Event publishing, extended task model |
+| Event Broker | Kafka (Redpanda) | Dapr Pub/Sub component |
+| Service Mesh | Dapr 1.14+ | Pub/Sub, State Store, Jobs API |
+| Consumer Services | Python 3.13 microservices | Notification, recurring-task, audit |
+| Orchestration | Kubernetes + Helm 3.x | Local (Minikube) and cloud (OKE/AKS/GKE) |
+| CI/CD | GitHub Actions | Automated build, test, deploy |
+| Database | Neon PostgreSQL (extended) | New tables: reminders, tags, events, audit logs |
+
+**Phase V Mandatory Requirements:**
+
+1. **Advanced Task Features**
+   - Recurring tasks (daily, weekly, custom interval)
+   - Due dates and reminder scheduling
+   - Priority levels (low, medium, high)
+   - Tag-based organization
+   - Filter, sort, and search capabilities
+
+2. **Event-Driven Architecture**
+   - Publish task events via Dapr Pub/Sub
+   - Consumer microservices react to events
+   - At-least-once delivery semantics
+   - Idempotent event processing
+   - Graceful degradation when broker unavailable
+
+3. **Reminder Scheduling**
+   - Dapr Jobs API for scheduled reminders
+   - Notification delivery via email/web
+   - Reminder state management (pending/sent/cancelled)
+
+4. **Cloud Deployment**
+   - Deploy to managed Kubernetes (Oracle OKE, Azure AKS, or Google GKE)
+   - CI/CD pipeline via GitHub Actions
+   - Production-grade configuration with Helm value overrides
+   - LoadBalancer services for external access
+
+**Phase V Operational Principles:**
+- All services must be loosely coupled via events
+- Horizontal scaling for all components
+- Monitoring and observability required
+- Backward compatibility with Phase IV is non-negotiable
+- Infrastructure as Code via Helm charts
+
+**Phase V Deliverables:**
+
+1. Extended Application:
+   - backend/ with event publishing and extended models
+   - frontend/ with new task features UI
+   - services/ directory with 3 consumer microservices
+   - Database migrations for new tables
+
+2. Event Infrastructure:
+   - Dapr component configurations
+   - Kafka/Redpanda deployment via Helm
+   - Event schemas and contracts
+
+3. Cloud Deployment:
+   - Extended Helm charts with new subcharts
+   - values-cloud.yaml for production overrides
+   - GitHub Actions CI/CD workflows
+   - Cloud setup documentation
+
+**Phase V Success Criteria:**
+- All Phase IV features continue working (AC-08)
+- Recurring tasks generate next occurrence within 5 seconds
+- Reminders delivered within 60 seconds (p95)
+- Event publish success rate 99.9%
+- Local deployment completes in under 10 minutes
+- Cloud deployment completes in under 15 minutes via CI/CD
+- System handles 100 concurrent users
+
 ### Explicitly Excluded Scope (All Phases)
 
-- Cloud orchestration (AWS EKS, GKE, AKS) - local Minikube only for Phase IV
-- Background job queues (Phase I, II)
-- Real-time websockets (Phase I, II)
+- Multiple cloud provider deployments simultaneously (Phase V: one provider only)
+- Background job queues (Phase I, II) - Phase V uses Dapr Jobs API
+- Real-time websockets (Phase I, II) - Phase V uses event-driven patterns
 - Multi-tenant enterprise features
+- Mobile push notifications (Phase V: web/email only)
+- Real-time collaborative editing
 
 ## Governance
 
@@ -365,4 +464,4 @@ This Constitution supersedes all other practices for all Phase development.
 - Complexity must be justified against the simplicity principle
 - Constitution checks are mandatory gates in the planning phase
 
-**Version**: 1.3.0 | **Ratified**: 2025-12-18 | **Last Amended**: 2025-12-20
+**Version**: 1.4.0 | **Ratified**: 2025-12-18 | **Last Amended**: 2026-02-13
