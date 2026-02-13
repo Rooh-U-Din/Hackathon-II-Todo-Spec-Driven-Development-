@@ -13,6 +13,7 @@ from typing import Any
 
 from fastapi import FastAPI, Request, Response
 from pydantic import BaseModel
+from prometheus_client import Counter, generate_latest, CONTENT_TYPE_LATEST
 
 # Configure logging
 logging.basicConfig(
@@ -27,6 +28,18 @@ DAPR_HTTP_PORT = int(os.getenv("DAPR_HTTP_PORT", "3500"))
 PUBSUB_NAME = os.getenv("PUBSUB_NAME", "taskpubsub")
 TASK_EVENTS_TOPIC = "task-events"
 REMINDERS_TOPIC = "reminders"
+
+# Prometheus metrics
+AUDIT_LOGS_CREATED = Counter(
+    'audit_service_logs_created_total',
+    'Total audit logs created',
+    ['action', 'entity_type']
+)
+EVENTS_PROCESSED = Counter(
+    'audit_service_events_processed_total',
+    'Total events processed',
+    ['event_type', 'status']
+)
 
 
 class CloudEvent(BaseModel):
@@ -186,6 +199,12 @@ async def handle_reminder_event(request: Request) -> Response:
 async def health():
     """Health check endpoint."""
     return {"status": "healthy", "service": SERVICE_NAME}
+
+
+@app.get("/metrics")
+def metrics() -> Response:
+    """Prometheus metrics endpoint."""
+    return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 
 @app.get("/ready")

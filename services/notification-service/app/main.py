@@ -13,6 +13,7 @@ from typing import Any
 
 from fastapi import FastAPI, Request, Response
 from pydantic import BaseModel
+from prometheus_client import Counter, generate_latest, CONTENT_TYPE_LATEST
 
 # Configure logging
 logging.basicConfig(
@@ -26,6 +27,18 @@ SERVICE_NAME = "notification-service"
 DAPR_HTTP_PORT = int(os.getenv("DAPR_HTTP_PORT", "3500"))
 PUBSUB_NAME = os.getenv("PUBSUB_NAME", "taskpubsub")
 TOPIC_NAME = "reminders"
+
+# Prometheus metrics
+NOTIFICATIONS_SENT = Counter(
+    'notification_service_notifications_sent_total',
+    'Total notifications sent',
+    ['channel', 'status']
+)
+EVENTS_PROCESSED = Counter(
+    'notification_service_events_processed_total',
+    'Total events processed',
+    ['event_type', 'status']
+)
 
 
 class CloudEvent(BaseModel):
@@ -137,6 +150,12 @@ async def handle_reminder(request: Request) -> Response:
 async def health():
     """Health check endpoint."""
     return {"status": "healthy", "service": SERVICE_NAME}
+
+
+@app.get("/metrics")
+def metrics() -> Response:
+    """Prometheus metrics endpoint."""
+    return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 
 @app.get("/ready")

@@ -14,6 +14,7 @@ dependencies = [
     "cloudevents>=1.11.0",
     "sqlmodel>=0.0.22",
     "psycopg2-binary>=2.9.9",
+    "prometheus-client>=0.20.0",
 ]
 
 [project.optional-dependencies]
